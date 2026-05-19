@@ -2,6 +2,7 @@
 c/build/
 c/resources.h
 js/build/
+public/
 docs/*.html
 *.o
 tools/twine/format.js

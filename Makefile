@@ -1,6 +1,7 @@
 VERSION=$(shell cat VERSION)
 UNAME=$(shell uname)
 EXTRA_FLAGS?=
+WEB_DECK?=examples/decks/wigglypaint.deck
 
 ifneq ("$(wildcard /usr/bin/olpc-hwinfo)","")
 	# building on an OLPC; use SDL 1.2
@@ -147,7 +148,7 @@ testawk:
 
 web-decker: js
 	@chmod +x ./scripts/web_decker.sh
-	@./scripts/web_decker.sh examples/decks/tour.deck js/build/decker.html $(VERSION)
+	@./scripts/web_decker.sh $(WEB_DECK) js/build/decker.html $(VERSION)
 
 runweb: web-decker
 	$(OPEN) js/build/decker.html

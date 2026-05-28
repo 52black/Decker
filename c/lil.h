@@ -456,6 +456,7 @@ monad(a_trim){
 	x=ls(x);
 	int a=0;     while(     (x->sv[a]==' '||x->sv[a]=='\n'))a++;
 	int b=x->c-1;while(b>0&&(x->sv[b]==' '||x->sv[b]=='\n'))b--;
+	if(b==x->c-1)return lmslice(x,a);
 	str r=str_new();str_add(&r,x->sv+a,b-a+1);return lmstr(r);
 }
 monad(l_trim){return perfuse(x,a_trim);}
@@ -613,7 +614,7 @@ monad(l_raze){
 	lv*r=lml(0);for(int z=0;z<x->c;z++)r=l_comma(r,x->lv[z]);return r;
 }
 char esc(char e,int*i,char*t,int*n){
-	if(e=='n')return '\n';if(strchr("\\\"/'",e))return e;if(e!='u'||*n<4)return ' ';
+	if(e=='n')return '\n';if(strchr("\\\"/'",e))return e;if((e!='u'&&e!='U')||*n<4)return ' ';
 	char h[5]={0};memcpy(h,t+*i,4),(*i)+=4,(*n)-=4;return drom_from_codepoint(0xFFFF&strtol(h,NULL,16));
 }
 lv* pjson(char*t,int*i,int*f,int*n){

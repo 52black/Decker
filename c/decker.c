@@ -257,6 +257,7 @@ lv* modal_open_path(void){
 }
 void modal_enter(int type);void modal_exit(int value);int field_linkspan(lv*arg);void field_patspan(int pat); // forward refs
 void sound_edit(lv*v);
+lv* n_readwav(lv*self,lv*a){(void)self;return readwav(drom_to_utf8(l_first(a))->sv);}
 void modal_push(int type){
 	if(ms.type!=modal_none){
 		ms_stack[ms_index]=(modal_context){ms,wid};
@@ -1183,10 +1184,10 @@ lv* contraptions_enumerate(void){
 lv*n_readfile(lv*self,lv*a){
 	lv*name=ls(l_first(a)),*hint=a->c>1?ls(a->lv[1]):lms(0);
 	if(!strcmp(hint->sv,"array"))return readbin(name);
-	if(has_suffix(name->sv,".png" ))return readimage(name->sv,!strcmp(hint->sv,"gray"));
-	if(has_suffix(name->sv,".bmp" ))return readimage(name->sv,!strcmp(hint->sv,"gray"));
-	if(has_suffix(name->sv,".jpg" ))return readimage(name->sv,!strcmp(hint->sv,"gray"));
-	if(has_suffix(name->sv,".jpeg"))return readimage(name->sv,!strcmp(hint->sv,"gray"));
+	if(has_suffix(name->sv,".png" ))return readimage(drom_to_utf8(name)->sv,!strcmp(hint->sv,"gray"));
+	if(has_suffix(name->sv,".bmp" ))return readimage(drom_to_utf8(name)->sv,!strcmp(hint->sv,"gray"));
+	if(has_suffix(name->sv,".jpg" ))return readimage(drom_to_utf8(name)->sv,!strcmp(hint->sv,"gray"));
+	if(has_suffix(name->sv,".jpeg"))return readimage(drom_to_utf8(name)->sv,!strcmp(hint->sv,"gray"));
 	if(has_suffix(name->sv,".gif" ))return n_readgif(self,a);
 	if(has_suffix(name->sv,".wav" ))return n_readwav(self,a);
 	if(has_suffix(name->sv,".deck"))return n_readdeck(self,a);
@@ -1462,6 +1463,7 @@ void modal_enter(int type){
 }
 void bg_paste(lv*b,int fit);void proto_prop(lv*target,char*key,lv*value);void proto_size(lv*target,pair size,rect margin); // forward refs
 void import_image(char*path){
+	// note: 'path' is a raw UTF-8 string!
 	lv*i=readimage(path,0),*m=NULL;if(is_empty(i))return;
 	int color=0,c[256]={0};EACH(z,i->b)c[0xFF&(i->b->sv[z])]++;
 	int tw=c[0],ow=c[32];c[32]=0,c[47]=0;for(int z=2;z<256;z++)if(c[z]){color=1;break;}
@@ -1484,7 +1486,7 @@ void modal_exit(int value){
 	wid=ms.old_wid;
 	if(wid.gv==&ms.old_wid.gv_slot)wid.gv=&wid.gv_slot;
 	if(wid.fv==&ms.old_wid.fv_slot)wid.fv=&wid.fv_slot;
-	if(ms.subtype==modal_import_image&&value){import_image(modal_open_path()->sv);}
+	if(ms.subtype==modal_import_image&&value){import_image(drom_to_utf8(modal_open_path())->sv);}
 	if(ms.subtype==modal_open_deck&&value){
 		lv*path=modal_open_path();
 		load_deck(deck_get(n_read(NULL,l_list(path))));
@@ -3559,7 +3561,7 @@ void event_file(char*p){
 	if(lb(ifield(deck,"locked")))return;
 	if(has_suffix(p,".html")||has_suffix(p,".deck")){
 		modal_enter(modal_resources);
-		ms.message=deck_get(n_read(NULL,l_list(lmcstr(p))));
+		ms.message=deck_get(n_read(NULL,l_list(lmutf8(p))));
 		ms.grid=(grid_val){res_enumerate(ms.message),0,-1,-1};
 	}
 	if(has_suffix(p,".gif"))import_image(p);
@@ -3568,11 +3570,11 @@ void event_file(char*p){
 	if(has_suffix(p,".bmp"))import_image(p);
 	if(has_suffix(p,".wav")){
 		au.target=n_deck_add(deck,l_list(lmistr("sound")));mark_dirty();modal_enter(modal_recording);
-		sound_edit(n_readwav(NULL,l_list(lmutf8(p))));au.sel=(pair){0,0},au.head=0;
+		sound_edit(readwav(p));au.sel=(pair){0,0},au.head=0;
 	}
 	if(has_suffix(p,".csv")||has_suffix(p,".psv")){
 		setuimode(mode_object);lv*a=lmd();
-		lv* dat=n_read(NULL,l_list(lmcstr(p)));
+		lv* dat=n_read(NULL,l_list(lmutf8(p)));
 		lv* sep=lmistr(has_suffix(p,".csv")?",": "|");
 		lv* arg=lml(3);arg->lv[0]=dat,arg->lv[1]=LNIL,arg->lv[2]=sep;
 		dset(a,lmistr("type"),lmistr("grid"));
@@ -3581,7 +3583,7 @@ void event_file(char*p){
 	}
 	if(has_suffix(p,".hex")){
 		lv*pat=ifield(deck,"patterns");iwrite(pat,lmn(32),lmn(0xFFFFFF));iwrite(pat,lmn(47),ZERO);
-		lv*t=l_parse(lmistr("%h"),l_split(lmistr("\n"),ls(n_read(NULL,l_list(lmcstr(p))))));
+		lv*t=l_parse(lmistr("%h"),l_split(lmistr("\n"),ls(n_read(NULL,l_list(lmutf8(p))))));
 		if(t->c&&ln(t->lv[t->c-1])==0)t->c--; // trailing newline?
 		if(t->c>14){
 			int a=0,b=0;EACH(z,t){

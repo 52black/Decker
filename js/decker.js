@@ -794,7 +794,7 @@ widget_grid=(target,x,value)=>{
 	const rowh=n=>inset(rect(bb.x+1,bb.y+rh*n+2,bb.w-2,rh-3),x.lines?0:-1)
 	let clicked=0,rsel=0,hrow=-1,hcol=-1;for(let y=0;y<nrd;y++){
 		if(_bg!=-1){
-			const p=clamp(0,ln(grid_cell_at(tk[_bg],y+value.scroll)),47)
+			const p=clamp(0,ln(grid_cell_at(tk[_bg],y+value.scroll)),255)
 			if(p){const t=rowb(y);if(y==0)t.y+=1,t.h-=1; draw_rect(t,p)}
 		}
 		const ra=in_layer()&&over(bb)&&over(rowb(y));let cbox=rect()
@@ -819,7 +819,7 @@ widget_grid=(target,x,value)=>{
 		if(drawncol&&x.lines)draw_invert(pal,rect(hs.x-3,b.y+1,1,b.h-2));cx+=cw[cols],drawncol=1
 		for(let y=0;y<nrd;y++){
 			const cell=rect(hs.x-3,bb.y+rh*y+1,hs.w+5,rh-1), v=grid_cell_at(tk[z],y+value.scroll)
-			const fc=x.format[z]=='L'?'s':(x.format[z]||'s'), ccol=y+value.scroll==hrow&&(x.bycell?cols==hcol :1)?bcol: _fg==-1?fcol: clamp(0,ln(grid_cell_at(tk[_fg],y+value.scroll)),47)
+			const fc=x.format[z]=='L'?'s':(x.format[z]||'s'), ccol=y+value.scroll==hrow&&(x.bycell?cols==hcol :1)?bcol: _fg==-1?fcol: clamp(0,ln(grid_cell_at(tk[_fg],y+value.scroll)),255)
 			const cf=ls(dyad.format(lms(`%${fc}`),fc=='j'||fc=='J'||fc=='a'?monad.list(v):v)), ip=rcenter(cell,ICONS[0].size)
 			const oc=frame.clip; frame.clip=rclip(cell,frame.clip)
 			if     (x.format[z]=='I'){const i=clamp(0,ln(v),8);if(i<8)draw_icon(ip,ICONS[i],ccol)}

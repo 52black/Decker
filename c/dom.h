@@ -931,22 +931,22 @@ lv* interface_patterns(lv*self,lv*i,lv*x){
 	lv*r=NULL;int t=i&&ln(i)?ln(i):0;
 	if(x){
 		if(t>= 2&&t<=27&&image_is(x)){for(int a=0;a<8;a++)for(int b=0;b<8;b++)pal_pat(pal,t,b,a)=lb(iwrite(x,lmpair((pair){b,a}),NULL));}
-		if(t>=28&&t<=31){r=ll(x);int c=anim_count(pal,t-28)=MIN(256,r->c);for(int z=0;z<c;z++){int f=CLAMP(0,ln(r->lv[z]),47);anim_frame(pal,t-28,z)=f>=28&&f<=31?0:f;}}
+		if(t>=28&&t<=31){r=ll(x);int c=anim_count(pal,t-28)=MIN(256,r->c);for(int z=0;z<c;z++){int f=CLAMP(0,0|ln(r->lv[z]),255);anim_frame(pal,t-28,z)=f>=28&&f<=31?0:f;}}
 		if(t>=32&&t<=47){int n=ln(x);pal_col_set(pal,t-32,n);r=x;}
 	}
 	else{
 		if(t== 0       ){r=image_make(lmbuff((pair){8,8}));}
 		if(t>= 1&&t<=27){r=image_make(lmbuff((pair){8,8}));for(int a=0;a<8;a++)for(int b=0;b<8;b++)r->b->sv[b+(a*8)]=pal_pat(pal,t,b,a);}
-		if(t>=28&&t<=31){r=lml(anim_count(pal,t-28));for(int z=0;z<r->c;z++)r->lv[z]=lmn(anim_frame(pal,t-28,z));}
+		if(t>=28&&t<=31){r=lml(anim_count(pal,t-28));for(int z=0;z<r->c;z++)r->lv[z]=lmn(0xFF&anim_frame(pal,t-28,z));}
 		if(t>=32&&t<=47){r=lmn(0xFFFFFF&pal_col_get(pal,t-32));}
 	}return r?r:x?x:LNIL;
 }
 
-lv* anims_write(char*pal){lv*r=lml(4);for(int ai=0;ai<4;ai++){GEN(a,anim_count(pal,ai))lmn(anim_frame(pal,ai,z));r->lv[ai]=a;}return r;}
+lv* anims_write(char*pal){lv*r=lml(4);for(int ai=0;ai<4;ai++){GEN(a,anim_count(pal,ai))lmn(0xFF&anim_frame(pal,ai,z));r->lv[ai]=a;}return r;}
 void anims_read(char*pal,lv*f){
 	if(!f||!lil(f))f=l_parse(lmistr("%j"),lmistr(DEFAULT_ANIMS));
 	for(int ai=0;ai<4&&ai<f->c;ai++){
-		lv*a=f->lv[ai];if(lil(a)){anim_count(pal,ai)=a->c;for(int z=0;z<256&&z<a->c;z++)anim_frame(pal,ai,z)=CLAMP(0,ln(a->lv[z]),48);}
+		lv*a=f->lv[ai];if(lil(a)){anim_count(pal,ai)=a->c;for(int z=0;z<256&&z<a->c;z++)anim_frame(pal,ai,z)=0xFF&CLAMP(0,((int)ln(a->lv[z])),255);}
 	}
 }
 void pick_palette(lv*deck){char*pal=patterns_pal(ifield(deck,"patterns"));for(int z=0;z<16;z++)COLORS[z]=pal_col_get(pal,z);}
@@ -967,7 +967,7 @@ lv* patterns_read(lv*x){
 
 #define anim_ants(x,y)                (((x+y+(frame_count/2))/3)%2?15:0)
 #define get_pattern(pal,pix,x,y)      (pix<2?(pix?1:0): pix>31?(pix==32?0:1): pix>27?0: pal_pat(pal,pix,x,y)&1)
-#define get_anim(pal,pix,frame)       (pix<28||pix>31?pix: anim_frame(pal,pix-28,(frame/4)%MAX(1,anim_count(pal,pix-28))))
+#define get_anim(pal,pix,frame)       (pix<28||pix>31?pix: 0xFF&anim_frame(pal,pix-28,(frame/4)%MAX(1,anim_count(pal,pix-28))))
 #define get_color(pal,pix,frame,x,y)  (pix==ANTS?anim_ants(x,y):            pix>47?0: pix>31?pix-32: draw_pattern(pal,pix,x,y)?15:0)
 #define get_colort(pal,pix,frame,x,y) (pix==ANTS?anim_ants(x,y): pix==0?16: pix>47?0: pix>31?pix-32: draw_pattern(pal,pix,x,y)?15:0)
 int draw_pattern(char*pal,int pix,int x,int y){return get_pattern(pal,pix,x,y);}
@@ -2961,7 +2961,7 @@ lv* interface_deck(lv*self,lv*i,lv*x){
 		ikey("locked" ){dset(data,i,lmn(lb(x)));return x;}
 		ikey("name"   ){dset(data,i,ls(x));return x;}
 		ikey("author" ){dset(data,i,ls(x));return x;}
-		ikey("corners"){dset(data,i,lmn(CLAMP(0,ln(x),47)));return x;}
+		ikey("corners"){dset(data,i,lmn(CLAMP(0,ln(x),255)));return x;}
 		ikey("script" ){dset(data,i,ls(x));return x;}
 		ikey("card"   ){n_go(self,l_list(x));return x;}
 	}else{
@@ -3042,7 +3042,7 @@ lv* deck_read(lv*x){
 	{lv*k=lmistr("name"    ),*f=dget(deck,k);dset(r,k,str_read(f,""));}
 	{lv*k=lmistr("author"  ),*f=dget(deck,k);dset(r,k,str_read(f,""));}
 	{lv*k=lmistr("script"  ),*f=dget(deck,k);dset(r,k,str_read(f,""));}
-	{lv*k=lmistr("corners" ),*f=dget(deck,k);dset(r,k,f?lmn(CLAMP(0,ln(f),47)):ONE);}
+	{lv*k=lmistr("corners" ),*f=dget(deck,k);dset(r,k,f?lmn(CLAMP(0,ln(f),255)):ONE);}
 	{lv*k=lmistr("card"    ),*f=dget(deck,k);int n=f?ln(f):0;dset(r,k,lmn(CLAMP(0,n,cards->c-1)));}
 	dset(r,lmistr("brushes"),lmd()),dset(r,lmistr("brusht"),lmd());
 	lv*trans=lmd();dset(r,lmistr("transit"),trans);lv*root=lmenv(NULL);constants(root);dset(root,lmistr("transition"),lmnat(n_transition,ri));

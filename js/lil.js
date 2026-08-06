@@ -2025,7 +2025,7 @@ patterns_read=x=>{
 		let r=null, t=i&&ln(i)?ln(i):0
 		if(x){
 			if(t>= 2&&t<=27&&image_is(x)){for(let a=0;a<8;a++)for(let b=0;b<8;b++)set(self.pal.pix,t,b,a,lb(iwrite(x,lmpair(rect(b,a)))))}
-			if(t>=28&&t<=31){r=ll(x);if(r.length>256)r=r.slice(0,256);self.anim[t-28]=r.map(x=>{const f=clamp(0,ln(x),47);return f>=28&&f<=31?0:f});r=lml(r)}
+			if(t>=28&&t<=31){r=ll(x);if(r.length>256)r=r.slice(0,256);self.anim[t-28]=r.map(x=>{const f=clamp(0,0|ln(x),255);return f>=28&&f<=31?0:f});r=lml(r)}
 			if(t>=32&&t<=47){pal_col_set(self.pal.pix,t-32,0xFF000000|ln(x));r=x}
 		}else{
 			if(t>= 0&&t<=27){r=image_copy(self.pal,rect(0,t*8,8,8))}
@@ -3071,7 +3071,7 @@ deck_read=x=>{
 			if(ikey(i,'locked' ))return self.locked=lb(x),x
 			if(ikey(i,'name'   ))return self.name=ls(x),x
 			if(ikey(i,'author' ))return self.author=ls(x),x
-			if(ikey(i,'corners'))return self.corners=clamp(0,ln(x),47),x
+			if(ikey(i,'corners'))return self.corners=clamp(0,ln(x),255),x
 			if(ikey(i,'script' ))return self.script=ls(x),x
 			if(ikey(i,'card'   ))return n_go([x],self),x
 		}else{
@@ -3110,7 +3110,7 @@ deck_read=x=>{
 	ri.locked      =deck.hasOwnProperty('locked' )?lb(deck.locked ):0
 	ri.name        =deck.hasOwnProperty('name'   )?ls(deck.name   ):''
 	ri.author      =deck.hasOwnProperty('author' )?ls(deck.author ):''
-	ri.corners     =deck.hasOwnProperty('corners')?clamp(0,ln(deck.corners),47):1
+	ri.corners     =deck.hasOwnProperty('corners')?clamp(0,ln(deck.corners),255):1
 	ri.script      =deck.hasOwnProperty('script' )?scripts.get(ls(deck.script)):''
 	ri.card        =deck.hasOwnProperty('card'   )?clamp(0,ln(deck.card),Object.keys(cards).length-1):0
 	ri.size        =deck.hasOwnProperty('size'   )?rclamp(rect(8,8),getpair(deck.size),rect(4096,4096)):rect(512,342)

@@ -660,7 +660,7 @@ int widget_grid(lv*target,grid x,grid_val*value){
 	int clicked=0,rsel=0,hrow=-1,hcol=-1;
 	for(int y=0;y<nrd;y++){
 		if(_bg!=-1){
-			int p=CLAMP(0,ln(grid_cell_at(_bg,y+value->scroll)),47);
+			int p=CLAMP(0,ln(grid_cell_at(_bg,y+value->scroll)),255);
 			if(p){rect t=rowb(y);if(y==0)t.y+=1,t.h-=1; draw_rect(t,p);}
 		}
 		int ra=in_layer()&&over(bb)&&over(rowb(y));rect cbox={0};
@@ -686,7 +686,7 @@ int widget_grid(lv*target,grid x,grid_val*value){
 		}
 		if(drawncol&&x.lines)draw_invert(pal,(rect){hs.x-3,b.y+1,1,b.h-2});cx+=cw[cols];drawncol=1;
 		for(int y=0;y<nrd;y++){
-			int ccol=y+value->scroll==hrow&&(x.bycell?cols==hcol :1)?bcol: _fg==-1?fcol: CLAMP(0,ln(grid_cell_at(_fg,y+value->scroll)),47);
+			int ccol=y+value->scroll==hrow&&(x.bycell?cols==hcol :1)?bcol: _fg==-1?fcol: CLAMP(0,ln(grid_cell_at(_fg,y+value->scroll)),255);
 			rect cell={hs.x-3,bb.y+rh*y+1,hs.w+5,rh-1}; lv*v=grid_cell_at(z,y+value->scroll);
 			cf.c=0;format_type_simple(&cf,v,z>=fk?'s':x.format[z]=='L'?'s':x.format[z]);str_term(&cf);
 			rect ib=box_center(cell,image_size(ICONS[0]));pair ip={ib.x,ib.y};

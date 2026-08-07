@@ -903,11 +903,13 @@ lv* font_write(lv*x){
 
 // Patterns interface
 
-unsigned int COLORS[]={
+#define PAL_COLORS 16
+
+unsigned int COLORS[PAL_COLORS]={
 	0xFFFFFFFF,0xFFFFFF00,0xFFFF6500,0xFFDC0000,0xFFFF0097,0xFF360097,0xFF0000CA,0xFF0097FF,
 	0xFF00A800,0xFF006500,0xFF653600,0xFF976536,0xFFB9B9B9,0xFF868686,0xFF454545,0xFF000000,
 };
-unsigned int DEFAULT_COLORS[]={
+unsigned int DEFAULT_COLORS[PAL_COLORS]={
 	0xFFFFFFFF,0xFFFFFF00,0xFFFF6500,0xFFDC0000,0xFFFF0097,0xFF360097,0xFF0000CA,0xFF0097FF,
 	0xFF00A800,0xFF006500,0xFF653600,0xFF976536,0xFFB9B9B9,0xFF868686,0xFF454545,0xFF000000,
 };
@@ -918,7 +920,7 @@ char*DEFAULT_PATTERNS=
 	"AKoAqgD/Vf9V/1X/Vf8A/wD/AP8AqqqqqqqqqqpEiBEiRIgRIt27d+7du3fuQIABAgQIECC/f/79+/fv3wgAqgAIAIgAj"
 	"493mPj4d4mqAIgUIkGIALCwsL8Av7+w";
 
-typedef struct {char pats[28][8][8];unsigned int colors[16];int anim_counts[4];char anims[4][256];} palette;
+typedef struct {char pats[28][8][8];unsigned int colors[PAL_COLORS];int anim_counts[4];char anims[4][256];} palette;
 #define anim_count(pal,p)    ((palette*)pal)->anim_counts[p]
 #define anim_frame(pal,p,f)  ((palette*)pal)->anims[p][f]
 #define pal_pat(pal,p,x,y)   ((palette*)pal)->pats[p][y%8][x%8]
@@ -931,14 +933,14 @@ lv* interface_patterns(lv*self,lv*i,lv*x){
 	lv*r=NULL;int t=i&&ln(i)?ln(i):0;
 	if(x){
 		if(t>= 2&&t<=27&&image_is(x)){for(int a=0;a<8;a++)for(int b=0;b<8;b++)pal_pat(pal,t,b,a)=lb(iwrite(x,lmpair((pair){b,a}),NULL));}
-		if(t>=28&&t<=31){r=ll(x);int c=anim_count(pal,t-28)=MIN(256,r->c);for(int z=0;z<c;z++){int f=CLAMP(0,0|ln(r->lv[z]),255);anim_frame(pal,t-28,z)=f>=28&&f<=31?0:f;}}
-		if(t>=32&&t<=47){int n=ln(x);pal_col_set(pal,t-32,n);r=x;}
+		if(t>=28&&t<=31){r=ll(x);int c=anim_count(pal,t-28)=MIN(256,r->c);for(int z=0;z<c;z++){int f=CLAMP(0,((int)ln(r->lv[z])),255);anim_frame(pal,t-28,z)=f>=28&&f<=31?0:f;}}
+		if(t>=32&&t<32+PAL_COLORS){int n=ln(x);pal_col_set(pal,t-32,n);r=x;}
 	}
 	else{
 		if(t== 0       ){r=image_make(lmbuff((pair){8,8}));}
 		if(t>= 1&&t<=27){r=image_make(lmbuff((pair){8,8}));for(int a=0;a<8;a++)for(int b=0;b<8;b++)r->b->sv[b+(a*8)]=pal_pat(pal,t,b,a);}
 		if(t>=28&&t<=31){r=lml(anim_count(pal,t-28));for(int z=0;z<r->c;z++)r->lv[z]=lmn(0xFF&anim_frame(pal,t-28,z));}
-		if(t>=32&&t<=47){r=lmn(0xFFFFFF&pal_col_get(pal,t-32));}
+		if(t>=32&&t<32+PAL_COLORS){r=lmn(0xFFFFFF&pal_col_get(pal,t-32));}
 	}return r?r:x?x:LNIL;
 }
 
@@ -949,27 +951,27 @@ void anims_read(char*pal,lv*f){
 		lv*a=f->lv[ai];if(lil(a)){anim_count(pal,ai)=a->c;for(int z=0;z<256&&z<a->c;z++)anim_frame(pal,ai,z)=0xFF&CLAMP(0,((int)ln(a->lv[z])),255);}
 	}
 }
-void pick_palette(lv*deck){char*pal=patterns_pal(ifield(deck,"patterns"));for(int z=0;z<16;z++)COLORS[z]=pal_col_get(pal,z);}
+void pick_palette(lv*deck){char*pal=patterns_pal(ifield(deck,"patterns"));for(int z=0;z<PAL_COLORS;z++)COLORS[z]=pal_col_get(pal,z);}
 lv* patterns_write(lv*x){
-	char*pal=patterns_pal(x);int c=0;for(int z=0;z<16;z++)if(pal_col_get(pal,z)!=DEFAULT_COLORS[z]){c=1;break;}
+	char*pal=patterns_pal(x);int c=0;for(int z=0;z<PAL_COLORS;z++)if(pal_col_get(pal,z)!=DEFAULT_COLORS[z]){c=1;break;}
 	lv*b=lmbuff((pair){8,(28*8)+(6*c)});for(int z=0;z<28*8*8;z++)b->sv[z]=pal[z];
-	if(c){char*o=b->sv+(28*8*8);for(int z=0;z<16;z++,o+=3){int v=pal_col_get(pal,z);o[0]=0xFF&(v>>16);o[1]=0xFF&(v>>8);o[2]=0xFF&(v);}}
+	if(c){char*o=b->sv+(28*8*8);for(int z=0;z<PAL_COLORS;z++,o+=3){int v=pal_col_get(pal,z);o[0]=0xFF&(v>>16);o[1]=0xFF&(v>>8);o[2]=0xFF&(v);}}
 	return image_write(image_make(b));
 }
 lv* patterns_read(lv*x){
 	lv*d=dget(x,lmistr("patterns"));
 	lv*i=image_read(d?ls(d):lmistr(DEFAULT_PATTERNS));pair s=image_size(i);i=image_resize(i,(pair){8,(28*8)+6});
 	lv*b=lmbuff((pair){8,((int)sizeof(palette))/8});char*pal=b->sv;for(int z=0;z<28*8*8;z++)pal[z]=i->b->sv[z];
-	if(s.y<=(28*8)){for(int z=0;z<16;z++)pal_col_set(pal,z,DEFAULT_COLORS[z]);}
-	else{char*o=i->b->sv+(28*8*8);for(int z=0;z<16;z++,o+=3)pal_col_set(pal,z,((0xFF&o[0])<<16)|((0xFF&o[1])<<8)|(0xFF&o[2]));}
+	if(s.y<=(28*8)){for(int z=0;z<PAL_COLORS;z++)pal_col_set(pal,z,DEFAULT_COLORS[z]);}
+	else{char*o=i->b->sv+(28*8*8);for(int z=0;z<PAL_COLORS;z++,o+=3)pal_col_set(pal,z,((0xFF&o[0])<<16)|((0xFF&o[1])<<8)|(0xFF&o[2]));}
 	lv*r=lmi(interface_patterns,lmistr("patterns"),image_make(b));anims_read(patterns_pal(r),dget(x,lmistr("animations")));return r;
 }
 
 #define anim_ants(x,y)                (((x+y+(frame_count/2))/3)%2?15:0)
 #define get_pattern(pal,pix,x,y)      (pix<2?(pix?1:0): pix>31?(pix==32?0:1): pix>27?0: pal_pat(pal,pix,x,y)&1)
 #define get_anim(pal,pix,frame)       (pix<28||pix>31?pix: 0xFF&anim_frame(pal,pix-28,(frame/4)%MAX(1,anim_count(pal,pix-28))))
-#define get_color(pal,pix,frame,x,y)  (pix==ANTS?anim_ants(x,y):            pix>47?0: pix>31?pix-32: draw_pattern(pal,pix,x,y)?15:0)
-#define get_colort(pal,pix,frame,x,y) (pix==ANTS?anim_ants(x,y): pix==0?16: pix>47?0: pix>31?pix-32: draw_pattern(pal,pix,x,y)?15:0)
+#define get_color(pal,pix,frame,x,y)  (pix==ANTS?anim_ants(x,y):            pix>=(32+PAL_COLORS)?0: pix>31?pix-32: draw_pattern(pal,pix,x,y)?15:0)
+#define get_colort(pal,pix,frame,x,y) (pix==ANTS?anim_ants(x,y): pix==0?16: pix>=(32+PAL_COLORS)?0: pix>31?pix-32: draw_pattern(pal,pix,x,y)?15:0)
 int draw_pattern(char*pal,int pix,int x,int y){return get_pattern(pal,pix,x,y);}
 int anim_pattern(char*pal,int pix,int frame){return get_anim(pal,pix,frame);}
 int draw_color      (char*pal,int pix,int frame,int x,int y){pix=anim_pattern(pal,pix,frame);return get_color (pal,pix,frame,x,y);}
@@ -3176,7 +3178,7 @@ int readcolor(unsigned char cr,unsigned char cg,unsigned char cb,int grayscale){
 		double rf=0.2126*pow(cr,2.2), gf=0.7152*pow(cg,2.2), bf=0.0722*pow(cb,2.2), gg=pow(rf+gf+bf,1/2.2);
 		return CLAMP(0,(int)gg,255);
 	}
-	int ci=0;float cd=1e20;for(int c=0;c<16;c++){
+	int ci=0;float cd=1e20;for(int c=0;c<PAL_COLORS;c++){
 		float dr=fabs(((COLORS[c]>>16)&0xFF)/256.0-cr/256.0),
 			  dg=fabs(((COLORS[c]>> 8)&0xFF)/256.0-cg/256.0),
 			  db=fabs(((COLORS[c]    )&0xFF)/256.0-cb/256.0),
@@ -3234,16 +3236,16 @@ char* writegif(lv*frames,lv*delays,int*len,int*pal,int pal_size){
 	else{
 		add_byte(0xF4);          // global colortable, 8-bits per channel, 32 colors
 		add_byte(0),add_byte(0); // background color is 0, 1:1 pixel aspect ratio
-		for(int z=0;z<16;z++)add_byte(COLORS[z]>>16),add_byte(COLORS[z]>>8),add_byte(COLORS[z]); // global colortable
-		for(int z=0;z<16;z++)add_byte(0xFF),add_byte(0xFF),add_byte(0xFF); // padding entries
+		for(int z=0;z<   PAL_COLORS;z++)add_byte(COLORS[z]>>16),add_byte(COLORS[z]>>8),add_byte(COLORS[z]); // global colortable
+		for(int z=0;z<32-PAL_COLORS;z++)add_byte(0xFF),add_byte(0xFF),add_byte(0xFF); // padding entries
 	}
 	add_short(0xFF21),add_byte(11),str_addz(&r,"NETSCAPE2.0"),add_byte(3),add_byte(1),add_short(0),add_byte(0); // NAB; loop gif forever
 	str_provision(&r,r.size+frames->c*(20+(size.x*size.y*2)));
 	EACH(frame,frames)if(image_is(frames->lv[frame])){
 		add_byte(0x21),add_byte(0xF9),add_byte(4); // graphic control extension
-		add_byte(pal_size&&paltrans==-1?8:9);                      // dispose to bg + has transparency
-		add_short(((int)ln(delays->lv[frame])));                   // 100ths of a second delay
-		add_byte(pal_size&&paltrans==-1?0: pal_size?paltrans: 16); // transparent color index, if any
+		add_byte(pal_size&&paltrans==-1?8:9);                              // dispose to bg + has transparency
+		add_short(((int)ln(delays->lv[frame])));                           // 100ths of a second delay
+		add_byte(pal_size&&paltrans==-1?0: pal_size?paltrans: PAL_COLORS); // transparent color index, if any
 		add_byte(0); // end GCE
 		add_byte(0x2C); // image descriptor
 		size=image_size(frames->lv[frame]);add_short(0),add_short(0),add_short(size.x),add_short(size.y); // window {x,y,width,height}

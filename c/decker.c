@@ -1869,7 +1869,7 @@ void modals(void){
 			if(sver<dver)can_copy=1,copy_message=">> Downgrade >>";
 		}
 		if(ui_button(cb,copy_message,can_copy&&ms.grid.row>-1)){
-			if(patterns_is(sel)){lv*dst=ifield(deck,"patterns");for(int z=2;z<=47;z++)iindex(dst,z,iindex(sel,z,NULL));}
+			if(patterns_is(sel)){lv*dst=ifield(deck,"patterns");for(int z=2;z<32+PAL_COLORS;z++)iindex(dst,z,iindex(sel,z,NULL));}
 			else if(module_is(sel)||prototype_is(sel)){n_deck_add(deck,l_list(sel));}
 			else{n_deck_add(deck,lml2(sel,rvalue(grid,"name")));}
 			ms.grid2=(grid_val){res_enumerate(deck),0,-1,-1},mark_dirty();
@@ -2045,7 +2045,7 @@ void modals(void){
 		dr.brush=CLAMP(0,dr.brush,(6*4)+br->c-1);
 	}
 	else if(ms.type==modal_pattern||ms.type==modal_fill||ms.type==modal_widpattern||ms.type==modal_spanpattern){
-		pair grid={8,6};int ss=25, gs=ss+4, m=5, lh=font_h(FONT_BODY);
+		pair grid={8,4+(PAL_COLORS/8)};int ss=25, gs=ss+4, m=5, lh=font_h(FONT_BODY);
 		int*v=ms.type==modal_widpattern||ms.type==modal_spanpattern?&ob.pending_pattern: ms.type==modal_pattern?&dr.pattern: &dr.fill;
 		rect b=draw_modalbox((pair){m+(grid.x*gs)+m,m+(grid.y*gs)+lh+m});
 		char*label=ms.type==modal_widpattern||ms.type==modal_spanpattern?"Choose a pattern.":

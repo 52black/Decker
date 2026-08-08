@@ -3160,8 +3160,11 @@ toolbars=_=>{
 			if(modebtn(pos,dn,rect(0,0     ,tcellw*2+1,tcellh+1),'Stroke',dr.pickfill==0))dr.pickfill=0
 			if(modebtn(pos,dn,rect(0,tcellh,tcellw*2+1,tcellh+1),'Fill'  ,dr.pickfill==1))dr.pickfill=1
 		}
-		if(dr.color){for(let z=0;z<16 ;z++)palbtn(pos,dn,rect(0,(2*tcellh)+z*tcellh,2*tcellw+1,tcellh+1),(z>=2?31:0)+z)}
-		else        {for(let z=0;z<4*8;z++)palbtn(pos,dn,rect((z%2)*tcellw,(2*tcellh)+(0|(z/2))*tcellh+(z>=28?tgap:0),tcellw+1,tcellh+1),patorder[z])}
+		if(!dr.color){for(let z=0;z<4*8;z++)palbtn(pos,dn,rect((z%2)*tcellw,(2*tcellh)+(0|(z/2))*tcellh+(z>=28?tgap:0),tcellw+1,tcellh+1),patorder[z])}
+		else{
+			if(PAL_COLORS<=16){for(let z=0;z<16                ;z++)palbtn(pos,dn,rect(0,(2*tcellh)+z*tcellh,2*tcellw+1,tcellh+1),(z>=2?31:0)+z)}
+			else              {for(let z=0;z<min(PAL_COLORS,32);z++)palbtn(pos,dn,rect((0|(z/16))*tcellw,(2*tcellh)+(z%16)*tcellh,tcellw+1,tcellh+1),(z>=2?31:0)+(z>=16?1:0)+z)}
+		}
 	})
 }
 
@@ -4015,7 +4018,7 @@ q('body').ondrop=e=>{
 				})
 				iwrite(deck.patterns,lmn(47),pal[a]),iwrite(deck.patterns,lmn(32),pal[b])
 				pal=pal.filter((_,i)=>i!=a&&i!=b)
-			}for(let z=0;z<15&&z<pal.length;z++)iwrite(deck.patterns,lmn(33+z),pal[z])
+			}for(let z=0;z<PAL_COLORS-2&&z<pal.length;z++)iwrite(deck.patterns,lmn((33+z)+(z>=15?1:0)),pal[z])
 		})
 	}
 	if(/^image\//.test(file.type)){load_image(file)}

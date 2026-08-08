@@ -2017,6 +2017,7 @@ sound_read=x=>sound_make((typeof x=='string')?data_read('SND',x):new Uint8Array(
 sound_write=x=>data_write('SND0',x.data)
 n_sound=([x])=>!x?sound_read(0): lis(x)?sound_read(ls(x)): lin(x)?sound_read(ln(x)): sound_make(Uint8Array.from(ll(x).map(ln)))
 
+const pal_color_space=ceil((PAL_COLORS*3)/8)
 pal_col_get=(pal,c)=>{const b=(8*224)+(3*c);return 0xFF000000|((pal[b]<<16)|(pal[b+1]<<8)|pal[b+2])}
 pal_col_set=(pal,c,x)=>{const b=(8*224)+(3*c);pal[b]=0xFF&(x>>16),pal[b+1]=0xFF&(x>>8),pal[b+2]=0xFF&x}
 pick_palette=deck=>{for(let z=0;z<PAL_COLORS;z++)COLORS[z]=pal_col_get(deck.patterns.pal.pix,z)}
@@ -2035,14 +2036,14 @@ patterns_read=x=>{
 		}return r?r:x?x:NIL
 	},'patterns')
 	let i=image_read(x.patterns?ls(x.patterns):DEFAULT_PATTERNS)
-	if(i.size.x!=8||i.size.y!=224+6){i=image_resize(i,rect(8,224+6));for(let z=0;z<PAL_COLORS;z++)pal_col_set(i.pix,z,DEFAULT_COLORS[z])}
+	if(i.size.x!=8||i.size.y!=224+pal_color_space){i=image_resize(i,rect(8,224+pal_color_space));for(let z=0;z<PAL_COLORS;z++)pal_col_set(i.pix,z,DEFAULT_COLORS[z])}
 	ri.pal=i
 	ri.anim=JSON.parse(DEFAULT_ANIMS);if(x.animations&&lil(x.animations))ll(x.animations).map((x,i)=>iindex(ri,28+i,x))
 	return ri
 }
 patterns_write=x=>{
 	const p=x.pal.pix, c=DEFAULT_COLORS.some((x,i)=>(0xFFFFFF&x)!=(0xFFFFFF&pal_col_get(p,i)))
-	return image_write(image_resize(image_copy(x.pal),rect(8,224+(6*c))))
+	return image_write(image_resize(image_copy(x.pal),rect(8,224+(pal_color_space*c))))
 }
 anims_write=x=>lml(x.anim.map(x=>lml(x.map(lmn))))
 

@@ -3466,8 +3466,11 @@ void rtoolbar(pair pos,pair dn){
 		if(modebtn(pos,dn,(rect){0,0     ,tcellw*2+1,tcellh+1},"Stroke",dr.pickfill==0))dr.pickfill=0;
 		if(modebtn(pos,dn,(rect){0,tcellh,tcellw*2+1,tcellh+1},"Fill"  ,dr.pickfill==1))dr.pickfill=1;
 	}
-	if(dr.color){for(int z=0;z<16 ;z++)palbtn(pos,dn,(rect){0,(2*tcellh)+z*tcellh,2*tcellw+1,tcellh+1},(z>=2?31:0)+z);}
-	else        {for(int z=0;z<4*8;z++)palbtn(pos,dn,(rect){(z%2)*tcellw,(2*tcellh)+(z/2)*tcellh+(z>=28?tgap:0),tcellw+1,tcellh+1},pp[z]);}
+	if(!dr.color){for(int z=0;z<4*8;z++)palbtn(pos,dn,(rect){(z%2)*tcellw,(2*tcellh)+(z/2)*tcellh+(z>=28?tgap:0),tcellw+1,tcellh+1},pp[z]);}
+	else{
+		if(PAL_COLORS<=16){for(int z=0;z<PAL_COLORS        ;z++)palbtn(pos,dn,(rect){0,(2*tcellh)+z*tcellh,2*tcellw+1,tcellh+1},(z>=2?31:0)+z);}
+		else              {for(int z=0;z<MIN(PAL_COLORS,32);z++)palbtn(pos,dn,(rect){(z/16)*tcellw,(2*tcellh)+(z%16)*tcellh,tcellw+1,tcellh+1},(z>=2?31:0)+(z>=16?1:0)+z);}
+	}
 }
 
 // Input and Events
@@ -3643,7 +3646,7 @@ void event_file(char*p){
 			iwrite(pat,lmn(47),t->lv[a]),iwrite(pat,lmn(32),t->lv[b]);
 			lv*f=lml(0);EACH(z,t)if(z!=a&&z!=b)ll_add(f,t->lv[z]);t=f;
 		}
-		for(int z=0;z<14&&z<t->c;z++)iwrite(pat,lmn(33+z),t->lv[z]);
+		for(int z=0;z<PAL_COLORS-2&&z<t->c;z++)iwrite(pat,lmn((33+z)+(z>=15?1:0)),t->lv[z]);
 	}
 }
 

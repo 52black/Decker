@@ -4011,7 +4011,7 @@ void all_menus(void){
 			if(menu_item("Move Down"    ,ob.sel->c,'\0')){ob_move_dn();}
 			if(menu_item("Move to Back" ,ob.sel->c,'\0')){ob_order();EACHR(z,ob.sel){iwrite(ob.sel->lv[z],lmistr("index"),ZERO);};mark_dirty();}
 		}
-		else if(wid.fv){
+		if(wid.fv){
 			int selection=wid.fv!=NULL&&wid.cursor.x!=wid.cursor.y;
 			menu_bar("Text",selection&&wid.f.style!=field_plain);
 			if(wid.f.style==field_rich){

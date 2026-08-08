@@ -3455,7 +3455,7 @@ all_menus=_=>{
 			if(menu_item('Move Down'    ,ob.sel.length))ob_move_dn()
 			if(menu_item('Move to Back' ,ob.sel.length))ob_order(),ob.sel.slice(0).reverse().map(w=>iwrite(w,lms('index'),ZERO          )),mark_dirty()
 		}
-		else if(wid.fv&&wid.f){
+		if(wid.fv&&wid.f){
 			const selection=wid.fv!=null&&wid.cursor.x!=wid.cursor.y
 			menu_bar('Text',selection&&wid.f.style!='plain')
 			if(wid.f.style=='rich'){

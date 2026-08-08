@@ -952,15 +952,16 @@ void anims_read(char*pal,lv*f){
 	}
 }
 void pick_palette(lv*deck){char*pal=patterns_pal(ifield(deck,"patterns"));for(int z=0;z<PAL_COLORS;z++)COLORS[z]=pal_col_get(pal,z);}
+#define PAL_COLOR_SPACE ceil((PAL_COLORS*3)/8)
 lv* patterns_write(lv*x){
 	char*pal=patterns_pal(x);int c=0;for(int z=0;z<PAL_COLORS;z++)if(pal_col_get(pal,z)!=DEFAULT_COLORS[z]){c=1;break;}
-	lv*b=lmbuff((pair){8,(28*8)+(6*c)});for(int z=0;z<28*8*8;z++)b->sv[z]=pal[z];
+	lv*b=lmbuff((pair){8,(28*8)+(PAL_COLOR_SPACE*c)});for(int z=0;z<28*8*8;z++)b->sv[z]=pal[z];
 	if(c){char*o=b->sv+(28*8*8);for(int z=0;z<PAL_COLORS;z++,o+=3){int v=pal_col_get(pal,z);o[0]=0xFF&(v>>16);o[1]=0xFF&(v>>8);o[2]=0xFF&(v);}}
 	return image_write(image_make(b));
 }
 lv* patterns_read(lv*x){
 	lv*d=dget(x,lmistr("patterns"));
-	lv*i=image_read(d?ls(d):lmistr(DEFAULT_PATTERNS));pair s=image_size(i);i=image_resize(i,(pair){8,(28*8)+6});
+	lv*i=image_read(d?ls(d):lmistr(DEFAULT_PATTERNS));pair s=image_size(i);i=image_resize(i,(pair){8,(28*8)+PAL_COLOR_SPACE});
 	lv*b=lmbuff((pair){8,((int)sizeof(palette))/8});char*pal=b->sv;for(int z=0;z<28*8*8;z++)pal[z]=i->b->sv[z];
 	if(s.y<=(28*8)){for(int z=0;z<PAL_COLORS;z++)pal_col_set(pal,z,DEFAULT_COLORS[z]);}
 	else{char*o=i->b->sv+(28*8*8);for(int z=0;z<PAL_COLORS;z++,o+=3)pal_col_set(pal,z,((0xFF&o[0])<<16)|((0xFF&o[1])<<8)|(0xFF&o[2]));}

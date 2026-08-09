@@ -1072,6 +1072,7 @@ FONTS={
 	"AAAAAD/BQAA+IiIiIiI+AAA",
 }
 
+const PAL_COLORS=16
 COLORS=[
 	0xFFFFFFFF,0xFFFFFF00,0xFFFF6500,0xFFDC0000,0xFFFF0097,0xFF360097,0xFF0000CA,0xFF0097FF,
 	0xFF00A800,0xFF006500,0xFF653600,0xFF976536,0xFFB9B9B9,0xFF868686,0xFF454545,0xFF000000,
@@ -1204,7 +1205,7 @@ readcolor=(cr,cg,cb,grayscale)=>{
 		const rf=0.2126*Math.pow(cr,2.2), gf=0.7152*Math.pow(cg,2.2), bf=0.0722*Math.pow(cb,2.2), gg=Math.pow(rf+gf+bf,1/2.2)
 		return clamp(0,0|gg,255)
 	}
-	let ci=0,cd=1e20;for(let c=0;c<16;c++){
+	let ci=0,cd=1e20;for(let c=0;c<PAL_COLORS;c++){
 		const dr=abs(((COLORS[c]>>16)&0xFF)/256.0-cr/256.0),
 			  dg=abs(((COLORS[c]>> 8)&0xFF)/256.0-cg/256.0),
 			  db=abs(((COLORS[c]    )&0xFF)/256.0-cb/256.0),
@@ -2016,32 +2017,33 @@ sound_read=x=>sound_make((typeof x=='string')?data_read('SND',x):new Uint8Array(
 sound_write=x=>data_write('SND0',x.data)
 n_sound=([x])=>!x?sound_read(0): lis(x)?sound_read(ls(x)): lin(x)?sound_read(ln(x)): sound_make(Uint8Array.from(ll(x).map(ln)))
 
+const pal_color_space=ceil((PAL_COLORS*3)/8)
 pal_col_get=(pal,c)=>{const b=(8*224)+(3*c);return 0xFF000000|((pal[b]<<16)|(pal[b+1]<<8)|pal[b+2])}
 pal_col_set=(pal,c,x)=>{const b=(8*224)+(3*c);pal[b]=0xFF&(x>>16),pal[b+1]=0xFF&(x>>8),pal[b+2]=0xFF&x}
-pick_palette=deck=>{for(let z=0;z<16;z++)COLORS[z]=pal_col_get(deck.patterns.pal.pix,z)}
+pick_palette=deck=>{for(let z=0;z<PAL_COLORS;z++)COLORS[z]=pal_col_get(deck.patterns.pal.pix,z)}
 patterns_read=x=>{
 	const set=(pal,p,x,y,v)=>pal[(x%8)+(8*(y%8))+(8*8*p)]=v
 	const ri=lmi((self,i,x)=>{
 		let r=null, t=i&&ln(i)?ln(i):0
 		if(x){
 			if(t>= 2&&t<=27&&image_is(x)){for(let a=0;a<8;a++)for(let b=0;b<8;b++)set(self.pal.pix,t,b,a,lb(iwrite(x,lmpair(rect(b,a)))))}
-			if(t>=28&&t<=31){r=ll(x);if(r.length>256)r=r.slice(0,256);self.anim[t-28]=r.map(x=>{const f=clamp(0,ln(x),47);return f>=28&&f<=31?0:f});r=lml(r)}
-			if(t>=32&&t<=47){pal_col_set(self.pal.pix,t-32,0xFF000000|ln(x));r=x}
+			if(t>=28&&t<=31){r=ll(x);if(r.length>256)r=r.slice(0,256);self.anim[t-28]=r.map(x=>{const f=clamp(0,0|ln(x),255);return f>=28&&f<=31?0:f});r=lml(r)}
+			if(t>=32&&t<32+PAL_COLORS){pal_col_set(self.pal.pix,t-32,0xFF000000|ln(x));r=x}
 		}else{
 			if(t>= 0&&t<=27){r=image_copy(self.pal,rect(0,t*8,8,8))}
 			if(t>=28&&t<=31){r=lml(self.anim[t-28].map(lmn))}
-			if(t>=32&&t<=47){r=lmn(0xFFFFFF&pal_col_get(self.pal.pix,t-32))}
+			if(t>=32&&t<32+PAL_COLORS){r=lmn(0xFFFFFF&pal_col_get(self.pal.pix,t-32))}
 		}return r?r:x?x:NIL
 	},'patterns')
 	let i=image_read(x.patterns?ls(x.patterns):DEFAULT_PATTERNS)
-	if(i.size.x!=8||i.size.y!=224+6){i=image_resize(i,rect(8,224+6));for(let z=0;z<16;z++)pal_col_set(i.pix,z,DEFAULT_COLORS[z])}
+	if(i.size.x!=8||i.size.y!=224+pal_color_space){i=image_resize(i,rect(8,224+pal_color_space));for(let z=0;z<PAL_COLORS;z++)pal_col_set(i.pix,z,DEFAULT_COLORS[z])}
 	ri.pal=i
 	ri.anim=JSON.parse(DEFAULT_ANIMS);if(x.animations&&lil(x.animations))ll(x.animations).map((x,i)=>iindex(ri,28+i,x))
 	return ri
 }
 patterns_write=x=>{
 	const p=x.pal.pix, c=DEFAULT_COLORS.some((x,i)=>(0xFFFFFF&x)!=(0xFFFFFF&pal_col_get(p,i)))
-	return image_write(image_resize(image_copy(x.pal),rect(8,224+(6*c))))
+	return image_write(image_resize(image_copy(x.pal),rect(8,224+(pal_color_space*c))))
 }
 anims_write=x=>lml(x.anim.map(x=>lml(x.map(lmn))))
 
@@ -3071,7 +3073,7 @@ deck_read=x=>{
 			if(ikey(i,'locked' ))return self.locked=lb(x),x
 			if(ikey(i,'name'   ))return self.name=ls(x),x
 			if(ikey(i,'author' ))return self.author=ls(x),x
-			if(ikey(i,'corners'))return self.corners=clamp(0,ln(x),47),x
+			if(ikey(i,'corners'))return self.corners=clamp(0,ln(x),255),x
 			if(ikey(i,'script' ))return self.script=ls(x),x
 			if(ikey(i,'card'   ))return n_go([x],self),x
 		}else{
@@ -3110,7 +3112,7 @@ deck_read=x=>{
 	ri.locked      =deck.hasOwnProperty('locked' )?lb(deck.locked ):0
 	ri.name        =deck.hasOwnProperty('name'   )?ls(deck.name   ):''
 	ri.author      =deck.hasOwnProperty('author' )?ls(deck.author ):''
-	ri.corners     =deck.hasOwnProperty('corners')?clamp(0,ln(deck.corners),47):1
+	ri.corners     =deck.hasOwnProperty('corners')?clamp(0,ln(deck.corners),255):1
 	ri.script      =deck.hasOwnProperty('script' )?scripts.get(ls(deck.script)):''
 	ri.card        =deck.hasOwnProperty('card'   )?clamp(0,ln(deck.card),Object.keys(cards).length-1):0
 	ri.size        =deck.hasOwnProperty('size'   )?rclamp(rect(8,8),getpair(deck.size),rect(4096,4096)):rect(512,342)

@@ -660,7 +660,7 @@ int widget_grid(lv*target,grid x,grid_val*value){
 	int clicked=0,rsel=0,hrow=-1,hcol=-1;
 	for(int y=0;y<nrd;y++){
 		if(_bg!=-1){
-			int p=CLAMP(0,ln(grid_cell_at(_bg,y+value->scroll)),47);
+			int p=CLAMP(0,ln(grid_cell_at(_bg,y+value->scroll)),255);
 			if(p){rect t=rowb(y);if(y==0)t.y+=1,t.h-=1; draw_rect(t,p);}
 		}
 		int ra=in_layer()&&over(bb)&&over(rowb(y));rect cbox={0};
@@ -686,7 +686,7 @@ int widget_grid(lv*target,grid x,grid_val*value){
 		}
 		if(drawncol&&x.lines)draw_invert(pal,(rect){hs.x-3,b.y+1,1,b.h-2});cx+=cw[cols];drawncol=1;
 		for(int y=0;y<nrd;y++){
-			int ccol=y+value->scroll==hrow&&(x.bycell?cols==hcol :1)?bcol: _fg==-1?fcol: CLAMP(0,ln(grid_cell_at(_fg,y+value->scroll)),47);
+			int ccol=y+value->scroll==hrow&&(x.bycell?cols==hcol :1)?bcol: _fg==-1?fcol: CLAMP(0,ln(grid_cell_at(_fg,y+value->scroll)),255);
 			rect cell={hs.x-3,bb.y+rh*y+1,hs.w+5,rh-1}; lv*v=grid_cell_at(z,y+value->scroll);
 			cf.c=0;format_type_simple(&cf,v,z>=fk?'s':x.format[z]=='L'?'s':x.format[z]);str_term(&cf);
 			rect ib=box_center(cell,image_size(ICONS[0]));pair ip={ib.x,ib.y};
@@ -1869,7 +1869,7 @@ void modals(void){
 			if(sver<dver)can_copy=1,copy_message=">> Downgrade >>";
 		}
 		if(ui_button(cb,copy_message,can_copy&&ms.grid.row>-1)){
-			if(patterns_is(sel)){lv*dst=ifield(deck,"patterns");for(int z=2;z<=47;z++)iindex(dst,z,iindex(sel,z,NULL));}
+			if(patterns_is(sel)){lv*dst=ifield(deck,"patterns");for(int z=2;z<32+PAL_COLORS;z++)iindex(dst,z,iindex(sel,z,NULL));}
 			else if(module_is(sel)||prototype_is(sel)){n_deck_add(deck,l_list(sel));}
 			else{n_deck_add(deck,lml2(sel,rvalue(grid,"name")));}
 			ms.grid2=(grid_val){res_enumerate(deck),0,-1,-1},mark_dirty();
@@ -2045,7 +2045,7 @@ void modals(void){
 		dr.brush=CLAMP(0,dr.brush,(6*4)+br->c-1);
 	}
 	else if(ms.type==modal_pattern||ms.type==modal_fill||ms.type==modal_widpattern||ms.type==modal_spanpattern){
-		pair grid={8,6};int ss=25, gs=ss+4, m=5, lh=font_h(FONT_BODY);
+		pair grid={8,4+(PAL_COLORS/8)};int ss=25, gs=ss+4, m=5, lh=font_h(FONT_BODY);
 		int*v=ms.type==modal_widpattern||ms.type==modal_spanpattern?&ob.pending_pattern: ms.type==modal_pattern?&dr.pattern: &dr.fill;
 		rect b=draw_modalbox((pair){m+(grid.x*gs)+m,m+(grid.y*gs)+lh+m});
 		char*label=ms.type==modal_widpattern||ms.type==modal_spanpattern?"Choose a pattern.":
@@ -3466,8 +3466,11 @@ void rtoolbar(pair pos,pair dn){
 		if(modebtn(pos,dn,(rect){0,0     ,tcellw*2+1,tcellh+1},"Stroke",dr.pickfill==0))dr.pickfill=0;
 		if(modebtn(pos,dn,(rect){0,tcellh,tcellw*2+1,tcellh+1},"Fill"  ,dr.pickfill==1))dr.pickfill=1;
 	}
-	if(dr.color){for(int z=0;z<16 ;z++)palbtn(pos,dn,(rect){0,(2*tcellh)+z*tcellh,2*tcellw+1,tcellh+1},(z>=2?31:0)+z);}
-	else        {for(int z=0;z<4*8;z++)palbtn(pos,dn,(rect){(z%2)*tcellw,(2*tcellh)+(z/2)*tcellh+(z>=28?tgap:0),tcellw+1,tcellh+1},pp[z]);}
+	if(!dr.color){for(int z=0;z<4*8;z++)palbtn(pos,dn,(rect){(z%2)*tcellw,(2*tcellh)+(z/2)*tcellh+(z>=28?tgap:0),tcellw+1,tcellh+1},pp[z]);}
+	else{
+		if(PAL_COLORS<=16){for(int z=0;z<PAL_COLORS        ;z++)palbtn(pos,dn,(rect){0,(2*tcellh)+z*tcellh,2*tcellw+1,tcellh+1},(z>=2?31:0)+z);}
+		else              {for(int z=0;z<MIN(PAL_COLORS,32);z++)palbtn(pos,dn,(rect){(z/16)*tcellw,(2*tcellh)+(z%16)*tcellh,tcellw+1,tcellh+1},(z>=2?31:0)+(z>=16?1:0)+z);}
+	}
 }
 
 // Input and Events
@@ -3643,7 +3646,7 @@ void event_file(char*p){
 			iwrite(pat,lmn(47),t->lv[a]),iwrite(pat,lmn(32),t->lv[b]);
 			lv*f=lml(0);EACH(z,t)if(z!=a&&z!=b)ll_add(f,t->lv[z]);t=f;
 		}
-		for(int z=0;z<14&&z<t->c;z++)iwrite(pat,lmn(33+z),t->lv[z]);
+		for(int z=0;z<PAL_COLORS-2&&z<t->c;z++)iwrite(pat,lmn((33+z)+(z>=15?1:0)),t->lv[z]);
 	}
 }
 
@@ -4008,7 +4011,7 @@ void all_menus(void){
 			if(menu_item("Move Down"    ,ob.sel->c,'\0')){ob_move_dn();}
 			if(menu_item("Move to Back" ,ob.sel->c,'\0')){ob_order();EACHR(z,ob.sel){iwrite(ob.sel->lv[z],lmistr("index"),ZERO);};mark_dirty();}
 		}
-		else if(wid.fv){
+		if(wid.fv){
 			int selection=wid.fv!=NULL&&wid.cursor.x!=wid.cursor.y;
 			menu_bar("Text",selection&&wid.f.style!=field_plain);
 			if(wid.f.style==field_rich){

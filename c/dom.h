@@ -968,15 +968,15 @@ lv* patterns_read(lv*x){
 	lv*r=lmi(interface_patterns,lmistr("patterns"),image_make(b));anims_read(patterns_pal(r),dget(x,lmistr("animations")));return r;
 }
 
-#define anim_ants(x,y)                (((x+y+(frame_count/2))/3)%2?15:0)
-#define get_pattern(pal,pix,x,y)      (pix<2?(pix?1:0): pix>31?(pix==32?0:1): pix>27?0: pal_pat(pal,pix,x,y)&1)
-#define get_anim(pal,pix,frame)       (pix<28||pix>31?pix: 0xFF&anim_frame(pal,pix-28,(frame/4)%MAX(1,anim_count(pal,pix-28))))
-#define get_color(pal,pix,frame,x,y)  (pix==ANTS?anim_ants(x,y):            pix>=(32+PAL_COLORS)?0: pix>31?pix-32: draw_pattern(pal,pix,x,y)?15:0)
-#define get_colort(pal,pix,frame,x,y) (pix==ANTS?anim_ants(x,y): pix==0?16: pix>=(32+PAL_COLORS)?0: pix>31?pix-32: draw_pattern(pal,pix,x,y)?15:0)
+#define anim_ants(x,y)                  (((x+y+(frame_count/2))/3)%2?15:0)
+#define get_pattern(pal,pix,x,y)        (pix<2?(pix?1:0): pix>31?(pix==32?0:1): pix>27?0: pal_pat(pal,pix,x,y)&1)
+#define get_anim(pal,pix,frame)         (pix<28||pix>31?pix: 0xFF&anim_frame(pal,pix-28,(frame/4)%MAX(1,anim_count(pal,pix-28))))
+#define get_color(pal,pix,frame,x,y)    (pix==ANTS?anim_ants(x,y):           pix>=(32+PAL_COLORS)?0: pix>31?pix-32: draw_pattern(pal,pix,x,y)?15:0)
+#define get_colort(pal,pix,frame,x,y,t) (pix==ANTS?anim_ants(x,y): pix==0?t: pix>=(32+PAL_COLORS)?0: pix>31?pix-32: draw_pattern(pal,pix,x,y)?15:0)
 int draw_pattern(char*pal,int pix,int x,int y){return get_pattern(pal,pix,x,y);}
 int anim_pattern(char*pal,int pix,int frame){return get_anim(pal,pix,frame);}
-int draw_color      (char*pal,int pix,int frame,int x,int y){pix=anim_pattern(pal,pix,frame);return get_color (pal,pix,frame,x,y);}
-int draw_color_trans(char*pal,int pix,int frame,int x,int y){pix=anim_pattern(pal,pix,frame);return get_colort(pal,pix,frame,x,y);}
+int draw_color      (char*pal,int pix,int frame,int x,int y)      {pix=anim_pattern(pal,pix,frame);return get_color (pal,pix,frame,x,y);}
+int draw_color_trans(char*pal,int pix,int frame,int x,int y,int t){pix=anim_pattern(pal,pix,frame);return get_colort(pal,pix,frame,x,y,t);}
 void draw_frame(char*pal,lv*buffer,int*p,int pitch,int frame,int mask){
 	pair size=buff_size(buffer);for(int y=0;y<size.y;y++)for(int x=0;x<size.x;x++){
 		int stride=pitch/sizeof(int), pix=0xFF&buffer->sv[x+y*size.x], ci=13;
@@ -3225,37 +3225,41 @@ lv* readgif(char*data,int size,int gray,int frames){
 char* writegif(lv*frames,lv*delays,int*len,int*pal,int pal_size){
 	int paltrans=-1;for(int z=0;z<pal_size;z++)if(pal[z]==-1)paltrans=z;
 	if(pal_size)pal_size=pal_size?MAX(2,pow(2,ceil(log2(pal_size)))):0; // next-closest power of 2
-	lv*patterns=patterns_read(lmd());str r=str_new();pair size={1,1};
+	lv*patterns=patterns_read(lmd());char*pp=patterns_pal(patterns);str r=str_new();pair size={1,1};
 	EACH(z,frames)size=pair_max(size,image_size(frames->lv[z]));
 	str_addz(&r,"GIF89a");add_short(size.x),add_short(size.y);
+	unsigned int lw=0;
 	if(pal_size){
-		int n=log2(pal_size)-1;
-		add_byte(0xF0|n);        // global colortable, 8-bits per channel, N colors
+		int n=log2(pal_size)-1;lw=MAX(2,(ceil(log2(pal_size))));
+		add_byte(0xF0|n);        // global colortable, 8-bits per channel, 2^N+1 colors
 		add_byte(0),add_byte(0); // background color is 0, 1:1 pixel aspect ratio
 		for(int z=0;z<pal_size;z++)add_byte(pal[z]>>16),add_byte(pal[z]>>8),add_byte(pal[z]); // global colortable
 	}
 	else{
-		add_byte(0xF4);          // global colortable, 8-bits per channel, 32 colors
+		int mc=0;EACH(frame,frames){ // how big does the colortable need to be? (including transparent slot)
+			lv*f=frames->lv[frame];if(image_is(f))EACH(z,f->b){int d=0xFF&f->b->sv[z];mc=MAX(mc,draw_color_trans(pp,d,frame,0,0,0));}
+		}mc=mc>15?32:16;
+		int n=log2(mc);paltrans=mc,lw=log2(mc)+1;
+		add_byte(0xF0|n);        // global colortable, 8-bits per channel, 2^N+1 colors
 		add_byte(0),add_byte(0); // background color is 0, 1:1 pixel aspect ratio
-		for(int z=0;z<   PAL_COLORS;z++)add_byte(COLORS[z]>>16),add_byte(COLORS[z]>>8),add_byte(COLORS[z]); // global colortable
-		for(int z=0;z<32-PAL_COLORS;z++)add_byte(0xFF),add_byte(0xFF),add_byte(0xFF); // padding entries
+		for(int z=0;z<paltrans;z++)add_byte(COLORS[z]>>16),add_byte(COLORS[z]>>8),add_byte(COLORS[z]); // global colortable
+		for(int z=0;z<paltrans;z++)add_byte(0xFF),add_byte(0xFF),add_byte(0xFF); // padding entries
 	}
 	add_short(0xFF21),add_byte(11),str_addz(&r,"NETSCAPE2.0"),add_byte(3),add_byte(1),add_short(0),add_byte(0); // NAB; loop gif forever
 	str_provision(&r,r.size+frames->c*(20+(size.x*size.y*2)));
 	EACH(frame,frames)if(image_is(frames->lv[frame])){
-		add_byte(0x21),add_byte(0xF9),add_byte(4); // graphic control extension
-		add_byte(pal_size&&paltrans==-1?8:9);                              // dispose to bg + has transparency
-		add_short(((int)ln(delays->lv[frame])));                           // 100ths of a second delay
-		add_byte(pal_size&&paltrans==-1?0: pal_size?paltrans: PAL_COLORS); // transparent color index, if any
+		add_byte(0x21),add_byte(0xF9),add_byte(4);    // graphic control extension
+		add_byte(8|(paltrans==-1?0:1));               // dispose to bg + has transparency?
+		add_short(((int)ln(delays->lv[frame])));      // 100ths of a second delay
+		add_byte(paltrans==-1?0: paltrans);           // transparent color index, if any
 		add_byte(0); // end GCE
 		add_byte(0x2C); // image descriptor
 		size=image_size(frames->lv[frame]);add_short(0),add_short(0),add_short(size.x),add_short(size.y); // window {x,y,width,height}
 		add_byte(0); // no local colortable
-		unsigned int lw=pal_size?MAX(2,(ceil(log2(pal_size)))): 5;
 		add_byte(lw); // minimum LZW code size
 		int ts=size.x*size.y,ti=0;char*temp=calloc(ts,sizeof(char)),*data=frames->lv[frame]->b->sv;
 		for(int y=0;y<size.y;y++)for(int x=0;x<size.x;x++){
-			int d=0xFF&data[y*size.x+x]; temp[ti++]=pal_size?MIN(pal_size,d): draw_color_trans(patterns_pal(patterns),d,frame,x,y);
+			int d=0xFF&data[y*size.x+x]; temp[ti++]=pal_size?MIN(pal_size,d): draw_color_trans(pp,d,frame,x,y,paltrans);
 		}encode_lzw(temp,ts,&r,lw,1);free(temp);
 		add_byte(0); // end of frame
 	}add_byte(0x3B); // end of GIF

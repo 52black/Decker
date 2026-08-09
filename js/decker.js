@@ -64,31 +64,33 @@ writegif=(frames,delays,palette,pal_size)=>{
 	const size=frames.reduce((s,f)=>rmax(s,f.size),rect(1,1)), pal=deck.patterns.pal.pix; let frame_index=0, payload=[]
 	const anim_ants       =(x,y)=>(0|((x+y+frame_index)/3))%2?15:0
 	const draw_pattern    =(pix,x,y)=>pix<2?(pix?1:0): pix>31?(pix==32?0:1): pal_pat(pal,pix,x,y)&1
-	const draw_color_trans=(pix,x,y)=>pix==ANTS?anim_ants(x,y): pix==0?16: pix>=(32+PAL_COLORS)?0: pix>31?pix-32: draw_pattern(pix,x,y)?15:0
+	const draw_color_trans=(pix,x,y)=>pix==ANTS?anim_ants(x,y): pix==0?paltrans: pix>=(32+PAL_COLORS)?0: pix>31?pix-32: draw_pattern(pix,x,y)?15:0
 	const b=x=>payload.push(x&0xFF), s=x=>{b(x);b(x>>8)}, t=x=>x.split('').forEach(x=>b(x.charCodeAt(0)))
 	t('GIF89a'),s(size.x),s(size.y) // header, dimensions
+	let lws=0;
 	if(pal_size){
-		const n=Math.log2(pal_size)-1
-		b(0xF0|n)                       // global colortable, 8-bits per channel, N colors
+		const n=Math.log2(pal_size)-1;lws=max(2,Math.log2(pal_size))
+		b(0xF0|n)                       // global colortable, 8-bits per channel, 2^N+1 colors
 		b(0),b(0)                       // background color is 0, 1:1 pixel aspect ratio
 		for(let z=0;z<pal_size;z++)b(palette[z]>>16),b(palette[z]>>8),b(palette[z]) // global colortable
 	}else{
-		b(0xF4)                         // global colortable, 8-bits per channel, 32 colors
+		let mc=0;frames.forEach(f=>f.pix.forEach(d=>mc=max(mc,draw_color_trans(d,0,0))));mc=mc>15?32:16
+		const n=Math.log2(mc);paltrans=mc,lws=Math.log2(mc)+1
+		b(0xF0|n)                       // global colortable, 8-bits per channel, 2^N+1 colors
 		b(0),b(0)                       // background color is 0, 1:1 pixel aspect ratio
-		for(let z=0;z<   PAL_COLORS;z++)b(COLORS[z]>>16),b(COLORS[z]>>8),b(COLORS[z]) // global colortable
-		for(let z=0;z<32-PAL_COLORS;z++)b(0xFF         ),b(0xFF        ),b(0xFF     ) // padding entries
+		for(let z=0;z<paltrans;z++)b(COLORS[z]>>16),b(COLORS[z]>>8),b(COLORS[z]) // global colortable
+		for(let z=0;z<paltrans;z++)b(0xFF         ),b(0xFF        ),b(0xFF     ) // padding entries
 	}
-	s(0xFF21),b(11),t('NETSCAPE2.0'),b(3),b(1),s(0),b(0)               // NAB; loop gif forever
+	s(0xFF21),b(11),t('NETSCAPE2.0'),b(3),b(1),s(0),b(0) // NAB; loop gif forever
 	for(let z=0;z<frames.length;z++){
 		const frame=frames[z]
 		s(0xF921),b(4)                            // graphic control extension
-		b(pal_size&&paltrans==-1?8:9)             // dispose to bg + has transparency
+		b(8|(paltrans==-1?0:1))                   // dispose to bg + has transparency?
 		s(delays[z])                              // 100ths of a second delay
-		b(pal_size&&paltrans==-1?0: pal_size?paltrans: PAL_COLORS) // transparent color index, if any
+		b(paltrans==-1?0: paltrans)               // transparent color index, if any
 		b(0)                                      // end GCE
 		b(0x2C)                                   // image descriptor
 		s(0),s(0),s(frame.size.x),s(frame.size.y) // dimensions
-		const lws=pal_size?max(2,Math.log2(pal_size)): 5
 		b(0),b(lws)                               // no local colortable,  minimum LZW code size
 		let bo=payload.length
 		const t=[];for(let y=0;y<frame.size.y;y++)for(let x=0;x<frame.size.x;x++){

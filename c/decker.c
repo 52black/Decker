@@ -115,7 +115,12 @@ int bg_pat(void){return dr.trans_mask&&dr.pattern==0?32:dr.pattern;}
 int bg_fill(void){return dr.trans_mask&&dr.fill==0?32:dr.fill;}
 int bg_has_sel(void){return dr.tool==tool_select&&(dr.sel_here.w>0||dr.sel_here.h>0);}
 int bg_has_lasso(void){return dr.tool==tool_lasso&&dr.mask!=NULL;}
-pair snap(pair p){return !dr.snap?p:(pair){dr.grid_size.x*((p.x+dr.grid_size.x/2)/dr.grid_size.x),dr.grid_size.y*((p.y+dr.grid_size.y/2)/dr.grid_size.y)};}
+pair pair_round(pair p,pair n){return (pair){n.x*(p.x/n.x),n.y*(p.y/n.y)};}
+pair snap(pair p){
+	if(!dr.snap)return p;
+	pair o=(pair){(p.x<0?-1:1)*dr.grid_size.x/2,(p.y<0?-1:1)*dr.grid_size.y/2};
+	return pair_round(pair_add(p,o),dr.grid_size);
+}
 pair snap_delta(pair p){pair a=snap(p);return (pair){a.x-p.x,a.y-p.y};}
 rect snapp(rect r){pair a=snap((pair){r.x,r.y});                        return (rect){a.x,a.y,r.w,r.h};} // position only
 rect snapr(rect r){pair a=snap((pair){r.x,r.y}),b=snap((pair){r.w,r.h});return (rect){a.x,a.y,b.x,b.y};} // position + dimensions
@@ -2816,13 +2821,13 @@ void bg_tools(void){
 			else if(dr.tool==tool_rect||dr.tool==tool_fillrect){
 				pair b=snap(ev.dpos),a=snap(ev.pos);
 				pair t={a.x-b.x,a.y-b.y};if(ev.shift){t.x=t.y=MAX(t.x,t.y);} // snap to square
-				bg_scratch_clear();rect r=normalize_rect((rect){b.x,b.y,t.x,t.y});r.w++,r.h++;
+				bg_scratch_clear();rect r=normalize_rect((rect){b.x,b.y,t.x,t.y});if(!dr.snap){r.w++,r.h++;}
 				if(dr.tool==tool_fillrect)draw_rect(r,bg_fill());draw_box_fancy(r,dr.brush,bg_pat(),deck);
 			}
 			else if(dr.tool==tool_ellipse||dr.tool==tool_fillellipse){
 				pair b=snap(ev.dpos),a=snap(ev.pos);
 				pair t={a.x-b.x,a.y-b.y};if(ev.shift){t.x=t.y=MAX(t.x,t.y);} // snap to circle
-				bg_scratch_clear();rect r=normalize_rect((rect){b.x+1,b.y+1,t.x,t.y});r.w--,r.h--;
+				bg_scratch_clear();rect r=normalize_rect((rect){b.x+1,b.y+1,t.x,t.y});r.w--,r.h--;if(dr.snap){r.w=MAX(0,r.w-1),r.h=MAX(0,r.h-1);}
 				#define circ_r(a) (fpair){(int)(c.x+(0.5+r.w/2.0)*cos(a)),(int)(c.y+(0.5+r.h/2.0)*sin(a))}
 				#define circ(a)   circ_r(((2*3.141592653589793)/divs)*(a))
 				#define divs      100

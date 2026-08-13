@@ -530,7 +530,7 @@ bg_pat=_=>(dr.trans_mask&&dr.pattern==0)?32:dr.pattern
 bg_fill=_=>(dr.trans_mask&&dr.fill==0)?32:dr.fill
 bg_has_sel=_=>dr.tool=='select'&&(dr.sel_here.w>0||dr.sel_here.h>0)
 bg_has_lasso=_=>dr.tool=='lasso'&&dr.mask!=null
-sint=(x,a)=>a*(0|((0|(x+a/2))/a))
+sint=(x,a)=>a*(0|((0|(x+((x<0?-1:1)*a/2)))/a))
 snap=p=>!dr.snap?p:rect(sint(p.x,dr.grid_size.x),sint(p.y,dr.grid_size.y),p.w,p.h) // position only
 snapr=r=>rpair(snap(r),snap(rect(r.w,r.h))) // position + dimensions
 snap_delta=p=>{const a=snap(p);return rect(a.x-p.x,a.y-p.y)}
@@ -2645,12 +2645,12 @@ bg_tools=_=>{
 			}
 			else if(dr.tool=='rect'||dr.tool=='fillrect'){
 				const b=snap(ev.dpos),a=snap(ev.pos),t=rsub(a,b);if(ev.shift){t.x=t.y=max(t.x,t.y)} // snap to square
-				bg_scratch_clear();const r=rnorm(rpair(b,t));r.w++,r.h++
+				bg_scratch_clear();const r=rnorm(rpair(b,t));if(!dr.snap){r.w++,r.h++}
 				if(dr.tool=='fillrect')draw_rect(r,bg_fill());draw_boxf(r,dr.brush,bg_pat(),deck)
 			}
 			else if(dr.tool=='ellipse'||dr.tool=='fillellipse'){
 				const b=snap(ev.dpos),a=snap(ev.pos),t=rsub(a,b);if(ev.shift){t.x=t.y=max(t.x,t.y)} // snap to circle
-				bg_scratch_clear();const r=rnorm(rpair(radd(b,rect(1,1)),t));r.w--,r.h--
+				bg_scratch_clear();const r=rnorm(rpair(radd(b,rect(1,1)),t));r.w--,r.h--;if(dr.snap){r.w=max(0,r.w-1),r.h=max(0,r.h-1)}
 				const c=rect(r.x+(r.w/2.0),r.y+(r.h/2.0)), divs=100, poly=range(divs).map(z=>{
 					const a=z*(2*Math.PI)/divs;return rint(rect(c.x+(0.5+r.w/2.0)*Math.cos(a),c.y+(0.5+r.h/2.0)*Math.sin(a)))
 				});poly.push(poly[0])

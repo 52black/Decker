@@ -530,7 +530,7 @@ bg_pat=_=>(dr.trans_mask&&dr.pattern==0)?32:dr.pattern
 bg_fill=_=>(dr.trans_mask&&dr.fill==0)?32:dr.fill
 bg_has_sel=_=>dr.tool=='select'&&(dr.sel_here.w>0||dr.sel_here.h>0)
 bg_has_lasso=_=>dr.tool=='lasso'&&dr.mask!=null
-sint=(x,a)=>a*(0|((0|(x+a/2))/a))
+sint=(x,a)=>a*(0|((0|(x+((x<0?-1:1)*a/2)))/a))
 snap=p=>!dr.snap?p:rect(sint(p.x,dr.grid_size.x),sint(p.y,dr.grid_size.y),p.w,p.h) // position only
 snapr=r=>rpair(snap(r),snap(rect(r.w,r.h))) // position + dimensions
 snap_delta=p=>{const a=snap(p);return rect(a.x-p.x,a.y-p.y)}

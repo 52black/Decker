@@ -3556,16 +3556,6 @@ all_menus=_=>{
 			dr.fatbits^=1;if(dr.fatbits)center_fatbits(rcenter(bg_has_sel()||bg_has_lasso()?dr.sel_here:con_dim(),rect()))
 		}
 	}
-	if(uimode=='draw'){
-		menu_bar('Style',ms.type==null&&!kc.on)
-		if(menu_item('Stroke...',1))modal_enter('pattern')
-		if(menu_item('Fill...'  ,1))modal_enter('fill'   )
-		if(menu_item('Brush...' ,1))modal_enter('brush'  )
-		menu_separator()
-		if(menu_check('Color'       ,1,dr.color))dr.color^=1
-		if(menu_check('Transparency',1,dr.trans))dr.trans^=1
-		if(menu_check('Underpaint'  ,1,dr.under))dr.under^=1
-	}
 	if(uimode=='object'){
 		menu_bar('Widgets',ms.type==null)
 		if(menu_item('New Button',1))ob_create([lmd([lms('type')],[lms('button')])])
@@ -3611,6 +3601,19 @@ all_menus=_=>{
 		}
 		menu_separator()
 		if(menu_item('Evaluate',rtext_len(ms.text.table)))listener_eval()
+	}
+	if(uimode=='draw'||uimode=='object'){
+		menu_bar('Style',ms.type==null&&!kc.on)
+		if(uimode=='draw'){
+			if(menu_item('Stroke...',1))modal_enter('pattern')
+			if(menu_item('Fill...'  ,1))modal_enter('fill'   )
+			if(menu_item('Brush...' ,1))modal_enter('brush'  )
+			menu_separator()
+		}
+		if(menu_check('Color'       ,1,dr.color))dr.color^=1
+		if(menu_check('Transparency',1,dr.trans))dr.trans^=1
+		menu_separator()
+		if(menu_check('Underpaint'  ,1,dr.under))dr.under^=1
 	}
 	menu_bar('Help',1)
 	if(menu_item('Decker Website...'  ,1))n_go([lms('http://beyondloom.com/decker/index.html'          )],deck)

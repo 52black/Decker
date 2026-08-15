@@ -4122,19 +4122,6 @@ void all_menus(void){
 			dr.fatbits^=1;if(dr.fatbits){center_fatbits(box_midpoint(bg_has_sel()||bg_has_lasso()?dr.sel_here:con_dim()));}
 		}
 	}
-	if(uimode==mode_draw){
-		menu_bar("Style",ms.type==modal_none&&!kc.on);
-		if(menu_item("Stroke...",1,'\0'))modal_enter(modal_pattern);
-		if(menu_item("Fill..."  ,1,'\0'))modal_enter(modal_fill);
-		if(menu_item("Brush..." ,1,'\0'))modal_enter(modal_brush);
-		menu_separator();
-		if(menu_check("Color"       ,1,dr.color,0))dr.color^=1;
-		if(menu_check("Transparency",1,dr.trans,0))dr.trans^=1;
-		if(menu_check("Underpaint"  ,1,dr.under,0))dr.under^=1;
-		#ifndef NO_TRACING
-		if(menu_check("Tracing Mode",windowed,tracing,0))set_tracing=!tracing;
-		#endif
-	}
 	if(uimode==mode_object){
 		menu_bar("Widgets",ms.type==modal_none);
 		if(menu_item("New Button",1,'\0')){lv*p=lmd();dset(p,lmistr("type"),lmistr("button"));ob_create(l_list(p));}
@@ -4183,6 +4170,22 @@ void all_menus(void){
 		if(menu_item("Show Locals"  ,1,'\0')){listen_show(align_right,0,li.vars);}
 		menu_separator();
 		if(menu_item("Evaluate"     ,rtext_len(ms.text.table),'\0'))listener_eval();
+	}
+	if(uimode==mode_draw||uimode==mode_object){
+		menu_bar("Style",ms.type==modal_none&&!kc.on);
+		if(uimode==mode_draw){
+			if(menu_item("Stroke...",1,'\0'))modal_enter(modal_pattern);
+			if(menu_item("Fill..."  ,1,'\0'))modal_enter(modal_fill);
+			if(menu_item("Brush..." ,1,'\0'))modal_enter(modal_brush);
+			menu_separator();
+		}
+		if(menu_check("Color"       ,1,dr.color,0))dr.color^=1;
+		if(menu_check("Transparency",1,dr.trans,0))dr.trans^=1;
+		menu_separator();
+		if(menu_check("Underpaint"  ,1,dr.under,0))dr.under^=1;
+		#ifndef NO_TRACING
+		if(menu_check("Tracing Mode",windowed&&uimode==mode_draw,tracing,0))set_tracing=!tracing;
+		#endif
 	}
 	menu_bar("Help",1);
 	if(menu_item("Decker Website..."  ,1,'\0'))n_go(deck,l_list(lmcstr("http://beyondloom.com/decker/index.html"          )));

@@ -1102,9 +1102,11 @@ lv* n_print(lv*self,lv*a){
 	(void)self;if(a->c<2){listen_show(align_right,1,ls(l_first(a)));}
 	else{a=l_format(ls(l_first(a)),l_drop(ONE,a));listen_show(align_right,1,a);}return a;
 }
+lv* selected_image(void);
 lv* n_pre_listen(lv*self,lv*a){
 	(void)self;EACH(z,li.vars)if(!dget(ev(),li.vars->kv[z]))dset(ev(),li.vars->kv[z],li.vars->lv[z]);
-	if(ob.sel->c&&uimode==mode_object)dset(ev(),lmistr("selected"),l_drop(ZERO,ob.sel));
+	if(uimode==mode_object&&ob.sel->c)dset(ev(),lmistr("selected"),l_drop(ZERO,ob.sel));
+	if(uimode==mode_draw&&(bg_has_sel()||bg_has_lasso()))dset(ev(),lmistr("selected"),selected_image());
 	return a;
 }
 lv* n_post_listen(lv*self,lv*a){
@@ -3069,6 +3071,9 @@ void bg_outline(void){
 		if(n)l->sv[i]=bg_pat();
 	}dr.limbo=l,dr.lasso_dirty=1;bg_regenerate_lasso_outline();
 }
+lv* selected_image(void){
+	return image_make(bg_has_lasso()?buffer_mask(dr.limbo,dr.mask): dr.limbo?bg_scaled_limbo():bg_copy_selection(dr.sel_here));
+}
 
 // Object Edit Mode
 
@@ -3942,12 +3947,11 @@ void all_menus(void){
 			if(menu_item("Redo",(!sel)&&has_redo(),'Z'))redo();
 			menu_separator();
 			if(menu_item("Cut Image",sel,'x')){
-				lv*i=bg_has_lasso()?buffer_mask(dr.limbo,dr.mask): dr.limbo?bg_scaled_limbo():bg_copy_selection(dr.sel_here);
-				bg_scoop_selection(),set_clip(image_write(image_make(i)));bg_delete_selection();
+				lv*i=selected_image();
+				bg_scoop_selection(),set_clip(image_write(i));bg_delete_selection();
 			}
 			if(menu_item("Copy Image",sel,'c' )){
-				lv*i=bg_has_lasso()?buffer_mask(dr.limbo,dr.mask): dr.limbo?bg_scaled_limbo():bg_copy_selection(dr.sel_here);
-				set_clip(image_write(image_make(i)));
+				set_clip(image_write(selected_image()));
 			}
 			paste_any();
 			if(menu_item("Clear",1,'\0')){int t=dr.tool;if(!sel){settool(tool_select),dr.sel_here=con_dim();}bg_delete_selection();settool(t);}

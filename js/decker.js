@@ -1163,7 +1163,8 @@ n_print=(a)=>{a[0]=a[0]||NIL;if(a.length<2){listen_show(ALIGN.right,1,lms(ls(a[0
 n_pre_listen=([a])=>{
 	const ev=getev();
 	for(let name of li.vars.keys()){if(!ev.v.get(name))ev.v.set(name,li.vars.get(name))}
-	if(ob.sel.length&&uimode=='object')ev.v.set('selected',lml(ob.sel.slice(0)))
+	if(uimode=='object'&&ob.sel.length)ev.v.set('selected',lml(ob.sel.slice(0)))
+	if(uimode=='draw'&&(bg_has_sel()||bg_has_lasso()))ev.v.set('selected',bg_has_lasso()?image_mask(dr.limbo,dr.mask): dr.limbo?bg_scaled_limbo():bg_copy_selection(dr.sel_here))
 	return a
 }
 n_post_listen=([a])=>{

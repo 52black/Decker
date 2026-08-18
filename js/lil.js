@@ -1230,6 +1230,7 @@ interface_app=lmi((self,i,x)=>{
 		if(i.v=='penfill'   )return lmn(dr.fill)
 		if(i.v=='cursor'    )return desired_cursor==null?NIL: lms(desired_cursor)
 		if(i.v=='playing'   )return lmn(audio_playing)
+		if(i.v=='params'    ){const r=lmd();(new URL(document.URL)).searchParams.forEach((v,k)=>dset(r,lms(k),lms(v)));return r}
 		if(i.v=='save'      )return lmnat(_=>((modal_enter&&modal_enter('save_deck'),NIL)))
 		if(i.v=='exit'      )return lmnat(_=>NIL) // does nothing in web-decker
 		if(i.v=='show')return lmnat(z=>{

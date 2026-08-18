@@ -688,6 +688,7 @@ The _app_ interface exposes control over the Decker application itself. It is av
 | `x.kiosk`                  | Are we in "kiosk mode"? (r/w)                                                                         |
 | `x.cursor`                 | String or nil. Ask Decker to use an alternate pointer cursor image while in interact mode. (r/w)      |
 | `x.playing`                | If any audio is currently playing (not counting a background `loop`), `1`. Otherwise, `0`.            |
+| `x.params`                 | A dictionary of URL query parameters for the current deck. (An empty dict except in in Web-Decker.)   |
 | `x.render[x]`              | Draw the visual appearance of card or widget `x` as an Image interface.                               |
 | `x.save[]`                 | Save the current deck, in-place if possible. May prompt the user for a save location.                 |
 | `x.exit[]`                 | Immediately close Decker without saving (see `x.save[]`).                                             |

@@ -332,6 +332,7 @@ lv*interface_app(lv*self,lv*i,lv*x){
 		ikey("penfill"   )return lmn(dr.fill);
 		ikey("kiosk"     )return lmn(kiosk);
 		ikey("cursor"    )return desired_cursor==-1?LNIL: lmistr(cursor_names[desired_cursor]);
+		ikey("params"    )return lmd();
 		ikey("save"      )return lmnat(n_appsave,NULL);
 		ikey("exit"      )return lmnat(n_appexit,NULL);
 		ikey("show"      )return lmnat(n_appshow,NULL);

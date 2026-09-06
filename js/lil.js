@@ -3288,7 +3288,7 @@ event_invoke=(target,name,arg,hunk,nodiscard)=>{
 		let t=scopes.k[z], b=lmblk(), sname='!widget_scope'
 		if(lin(t))sname='!default_handlers'
 		if(deck_is(t)){
-			t.modules.v.map((v,i)=>bind(b,t.modules.k[i],ifield(v,'value')))
+			blk_locs(b,lmd(t.modules.k,t.modules.v.map(v=>ifield(v,'value'))))
 			blk_locs(b,t.cards)
 			sname='!deck_scope'
 		}

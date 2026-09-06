@@ -3788,7 +3788,9 @@ void paste_any(void){
 	else if(has_clip("%%WGT")){if(menu_item("Paste Widgets",1,'v')){
 		lv*t=get_clip();int f=1,i=6,n=t->c-i;lv*v=plove(t->sv,&i,&f,&n);
 		lv*defs=dget(v,lmistr("d")),*wids=dget(v,lmistr("w"));wids=wids?ll(wids):lml(0);
-		merge_fonts(deck,dget(v,lmistr("f"))),merge_prototypes(deck,defs?ld(defs):lmd(),wids),ob_create(wids);
+		int nest=0;if(prototype_is(con())){lv*t=lmistr("type"),*k=lmistr("contraption");EACH(z,wids)if(matchr(k,dget(wids->lv[z],t)))nest=1;}
+		if(nest){modal_enter(modal_alert);ms.message=rtext_cast(lmistr("Contraptions cannot be pasted into contraption prototypes."));}
+		else{merge_fonts(deck,dget(v,lmistr("f"))),merge_prototypes(deck,defs?ld(defs):lmd(),wids),ob_create(wids);}
 	}}
 	else if(has_clip("%%CRD")){if(menu_item("Paste Card",1,'v')){
 		lv*c=n_deck_paste(deck,l_list(get_clip()));con_set(NULL);

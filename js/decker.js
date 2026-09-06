@@ -3957,7 +3957,9 @@ dopaste=x=>{
 	else if(ms.type=='recording'&&au.mode=='stopped'&&/^%%SND0/.test(x)){sound_edit(sound_replace(sound_read(x)))}
 	else if(ms.type==null&&/^%%WGT0/.test(x)){
 		const v=plove(x,6,x.length-6).value; let defs=dget(v,lms('d')),wids=dget(v,lms('w'));wids=wids?ll(wids):[]
-		merge_fonts(deck,dget(v,lms('f'))),merge_prototypes(deck,defs?ld(defs):lmd(),wids),ob_create(wids)
+		let nest=0;if(prototype_is(con())){const t=lms('type'),k=lms('contraption');nest=wids.some(x=>match(k,dget(x,t)))}
+		if(nest){modal_enter('alert');ms.message=rtext_cast(lms('Contraptions cannot be pasted into contraption prototypes.'))}
+		else{merge_fonts(deck,dget(v,lms('f'))),merge_prototypes(deck,defs?ld(defs):lmd(),wids),ob_create(wids)}
 	}
 	else if(ms.type==null&&/^%%CRD0/.test(x)){
 		const c=deck_paste(deck,lms(x));con_set(null)

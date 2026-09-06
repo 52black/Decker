@@ -3339,7 +3339,7 @@ void sfx_install(lv*sfx,clip_state*target){
 void sfx_doloop(int clear){
 	interpreter_lock();
 	lv*a=orig_loop?orig_loop:LNIL,*b=lmblk(),*r=LNIL;
-	blk_get(b,lmistr("loop")),blk_lit(b,l_list(a)),blk_op(b,CALL);
+	blk_get(b,lmistr("loop")),blk_lit(b,lml2(a,lmbool(clear))),blk_op(b,CALL);
 	int pp=pending_popstate;fire_hunk_async(ifield(deck,"card"),b);
 	int quota=LOOP_QUOTA;while(quota>0&&running()){runop(),quota--;}
 	if(!running())r=arg();popstate();pending_popstate=pp;

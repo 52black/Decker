@@ -2128,6 +2128,15 @@ i.script:"on click do me.msg:\"another\" end"
 i.b.event.click
 assert["stale script after mutate" "another" i.m.text]
 
+d:newdeck[]
+p1:d.add["contraption" "p1"]
+p2:d.add["contraption" "p2"]
+p1.add["button" "testButton"]
+p2.add["contraption" "p1"]
+p2.add["button" "otherButton"]
+assert["contraptions cannot be added to prototypes; keys" (list "otherButton") (keys p2.widgets)]
+assert["contraptions cannot be added to prototypes; types" (list "button") (range p2.widgets..type)]
+
 #######################################
 #
 #  Lilt features

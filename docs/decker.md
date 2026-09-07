@@ -2154,10 +2154,24 @@ end
 But you might want to have other side effects, or choose the next background loop sound based on some algorithm:
 ```lil
 on loop do
-	iteration_count.value:iteration_count.value+1
 	random["clip1","clip2","clip3"]
 end
 ```
+
+The `loop` event handler is also provided a second argument (here `fin`) which is `1` if the event is firing because the previous loop completed and `0` if it is firing for any other reason, such as a `go[]` call. For example, you might want to advance to the next sound clip in a sequence in the former case and in the latter case either continue the currently selected sound clip or transition to a different sequence:
+```lil
+on loop prev fin do
+	if fin
+		# assuming the existence of a "counter" field somewhere:
+		counter.data:1+counter.data
+		sounds:"sound1","sound2","sound3"
+		sounds[(count sounds)%counter.data]
+	else
+		prev
+	end
+end
+```
+
 The `loop` event handler _must_ complete quickly; if it exceeds a small quota, it will be halted along with the background loop.
 
 The Danger Zone

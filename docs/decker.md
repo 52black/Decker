@@ -1612,7 +1612,7 @@ For widgets within a contraption, `card` will be the contraption. While editing/
 
 Events are as follows:
 
-| Target      | Name         | Argument                                     | When                                                                           |
+| Target      | Name         | Argument(s)                                  | When                                                                           |
 | :---------- | :----------- | :------------------------------------------- | :----------------------------------------------------------------------------- |
 | button      | `click`      | None.                                        | The user clicks the button or activates its _shortcut_.                        |
 | grid        | `click`      | Row number.                                  | The user selects a row in the grid.                                            |
@@ -1631,7 +1631,7 @@ Events are as follows:
 | card        | `view`       | None.                                        | The card is navigated to or refreshed, including entering interact mode.       |
 | contraption | `view`       | None.                                        | The surrounding card is sent a `view` event (see above).                       |
 | widget      | `view`       | None.                                        | The surrounding card is active and the widget is animated, repeatedly at 60hz. |
-| card        | `loop`       | Previous _sound interface_ or nil.           | The card is navigated to, or the background loop completes.                    |
+| card        | `loop`       | Previous sound or nil, finished flag.        | The card is navigated to, or the background loop completes.                    |
 | card        | `quit`       | None.                                        | The user attempts to quit Decker while in "kiosk mode".                        |
 
 Editing a cell in a grid produces a `changecell` event, which provides an opportunity to parse/validate input, produce side-effects, or cancel applying the change entirely. The `row`, `col`, and `colname` attributes of the target grid (`me`) can be referenced to identify the cell being altered.
@@ -1646,7 +1646,7 @@ on inside   a b do min(a.pos>b.pos),(a.pos+a.size)<b.pos+b.size end    # widget 
 
 The `navigate` event will fire when the user presses cursor keys on the keyboard without a field selected or performs a navigation gesture.
 
-The `loop` event handler is fired when the user initially visits a card or when a background audio loop stops. If it returns a _sound interface_ or the name of a sound in the deck, that sound will become the next background loop. In this manner, you can sequence sound clips together to form continuous background sound. The `loop` event handler _must_ complete its work quickly (much like a [transition](#transitions) function) or it and the background loop will be halted.
+The `loop` event handler is fired when the user initially visits a card or when a background audio loop stops. If it returns a _sound interface_ or the name of a sound in the deck, that sound will become the next background loop. In this manner, you can sequence sound clips together to form continuous background sound. The `loop` event handler _must_ complete its work quickly (much like a [transition](#transitions) function) or it and the background loop will be halted. The second argument to this event handler, `fin`, will be truthy if the sound clip finished playing normally and falsey if the `loop` event was fired prematurely due to navigation within the deck, exiting editing tools, etc.
 
 Decker will supply the following "default" event handlers so that links, navigation, grid interaction, and drawing on canvases will have useful behaviors out of the box. These defaults can be overridden (or wrapped) by definitions in scripts on the deck, card, or relevant widget:
 ```lil

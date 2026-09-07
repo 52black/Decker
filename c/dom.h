@@ -204,8 +204,8 @@ lv* event_invokev(lv*target,lv*name,lv*arg,lv*hunk,int nodiscard){
 		lv*t=scopes->kv[z],*b=lmblk();char*sname="!widget_scope";
 		if(lin(t))sname="!default_handlers";
 		if(deck_is(t)){
-			lv*modules=ifield(t,"modules");
-			EACH(z,modules)blk_lit(b,ifield(modules->lv[z],"value")),blk_loc(b,modules->kv[z]),blk_op(b,DROP);
+			lv*mv=ifield(t,"modules"),*modules=lmd();EACH(z,mv)dset(modules,mv->kv[z],ifield(mv->lv[z],"value"));
+			blk_locs(b,modules);
 			blk_locs(b,ifield(t,"cards"));
 			sname="!deck_scope";
 		}

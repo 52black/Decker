@@ -1232,7 +1232,7 @@ load_sound=(file,hint,after)=>{
 sfx_stoploop=_=>{audio_loop_playing.onended=null,audio_loop_playing.stop(),audio_loop=audio_loop_playing=null}
 sfx_doloop=clear=>{
 	const a=audio_loop||NIL,b=lmblk(),pp=pending_popstate;let r=NIL, quota=LOOP_QUOTA
-	blk_get(b,lms('loop')),blk_lit(b,lml([a])),blk_op(b,op.CALL)
+	blk_get(b,lms('loop')),blk_lit(b,lml([a,lmbool(clear)])),blk_op(b,op.CALL)
 	fire_hunk_async(ifield(deck,'card'),b)
 	while(quota>0&&running()){runop(),quota--}
 	if(!running())r=arg();popstate(),pending_popstate=pp

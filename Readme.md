@@ -25,7 +25,6 @@ Native-Decker
 Decker is also available as a native application, written in C. Building Native-Decker from source requires:
 
 - a c compiler and libc
-- the `xxd` utility (standard with MacOS and most \*nix distros)
 - [SDL2](https://www.libsdl.org/download-2.0.php)
 - [SDL2_image](https://github.com/libsdl-org/SDL_image)
 
@@ -73,20 +72,6 @@ $ lilt
 "16755200"
  write["color.html" d]
 1
-```
-
-You can build Lilt against [Cosmopolitan Libc](https://github.com/jart/cosmopolitan), producing a single binary that will run on most popular operating systems:
-```
-$ ./apelilt.sh
-successfully compiled lilt.com
-running tests against ./lilt.com...
-all interpreter tests passed.
-all dom tests passed.
-all roundtrip tests passed.
-
-$ sh ./lilt.com
-  range 10
-(0,1,2,3,4,5,6,7,8,9)
 ```
 
 The Danger Zone

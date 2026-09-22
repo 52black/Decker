@@ -1257,6 +1257,14 @@ interface_bits=lmi((self,i,x)=>{
 	if(ikey(i,'and'))return cb((x,y)=>lmn((lbits(x)&lbits(y))>>>0))
 	if(ikey(i,'or' ))return cb((x,y)=>lmn((lbits(x)|lbits(y))>>>0))
 	if(ikey(i,'xor'))return cb((x,y)=>lmn((lbits(x)^lbits(y))>>>0))
+	if(ikey(i,'decode'))return lmnat(([w,d])=>{
+		if(!w||!d)return lml([]);w=clamp(0,ln(w),32), d=monad.raze(lml(ll(d)));if(!count(d))return lml([])
+		const r=[];d.v.forEach(x=>{const v=lbits(x);for(let b=w-1;b>=0;b--)r.push(lmbool(1&(v>>b)))});return lml(r)
+	})
+	if(ikey(i,'encode'))return lmnat(([w,d])=>{
+		if(!w||!d)return lml([]);w=clamp(0,ln(w),32), d=monad.raze(lml(ll(d)));const c=count(d), n=w==0?0:ceil(c/w);let i=0;
+		const r=[];for(let z=0;z<n;z++){let v=0;for(let b=0;b<w;b++)v=(v<<1)|(i>=c?0:1&ln(d.v[i++]));r.push(lmn(v<0?v+0x100000000:v))}return lml(r)
+	})
 	return x?x:NIL
 },'bits')
 
@@ -1830,6 +1838,7 @@ image_merge_op=(target,src,op)=>{
 	if(op=='<')for(let y=0,i=0;y<ts.y;y++)for(let x=0;x<ts.x;x++,i++)t[i]=t[i] <   b[(x%bs.x)+(y%bs.y)*bs.x]
 	if(op=='>')for(let y=0,i=0;y<ts.y;y++)for(let x=0;x<ts.x;x++,i++)t[i]=t[i] >   b[(x%bs.x)+(y%bs.y)*bs.x]
 	if(op=='=')for(let y=0,i=0;y<ts.y;y++)for(let x=0;x<ts.x;x++,i++)t[i]=t[i]==   b[(x%bs.x)+(y%bs.y)*bs.x]
+	if(op=='^')for(let y=0,i=0;y<ts.y;y++)for(let x=0;x<ts.x;x++,i++)t[i]=t[i] ^   b[(x%bs.x)+(y%bs.y)*bs.x]
 }
 image_outline=(target,p)=>{
 	if(p<0||p>255)return;const t=image_copy(target),s=target.size

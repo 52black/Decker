@@ -721,6 +721,8 @@ The _bits_ interface exposes utility routines for efficient bit-wise manipulatio
 | `x.or[...x]`               | Calculate the bit-wise OR  of two or more numbers or lists of numbers.   |
 | `x.and[...x]`              | Calculate the bit-wise AND of two or more numbers or lists of numbers.   |
 | `x.xor[...x]`              | Calculate the bit-wise XOR of two or more numbers or lists of numbers.   |
+| `x.decode[w x]`            | Break numbers in `x` into a list of binary digits, `w` bits per number.  |
+| `x.encode[w x]`            | Pack binary digits in `x` into a list of numbers, `w` bits per number.   |
 
 The `bits.and[]`, `bits.or[]` and `bits.xor[]` functions _conform_ scalar and vector arguments like Lil's built in arithmetic operators:
 ```lil
@@ -739,6 +741,33 @@ bits.or[(8,4,1)]         # 13
 Note that scalar-vector `bits.xor[]` can be used to perform a bit-wise NOT:
 ```lil
 bits.xor[255 (range 8)]  # (255,254,253,252,251,250,249,248)
+```
+
+The `bits.decode[w x]` and `bits.encode[w x]` functions can take their `x` argument as a number, a list, or a list of lists. The former breaks numbers into binary digits, and the latter packs binary digits into numbers; in each case, the numbers will be treated as each having `w` binary digits (in a range between 1 and 32):
+```lil
+         bits.decode[3 (range 8)]  # (0,0,0,0,0,1,0,1,0,0,1,1,1,0,0,1,0,1,1,1,0,1,1,1)
+3 window bits.decode[3 (range 4)]  # ((0,0,0),(0,0,1),(0,1,0),(0,1,1))
+bits.encode[3 (0,0,0,0,0,1,0,1,0)] # (0,1,2)
+```
+
+One useful application of these functions is unpacking the pixels of an image from bytes (or vice versa) when working with graphics for, say, a CHIP-8 game:
+```lil
+bytes:112,112,32,112,168,32,80,80
+i:image[8,count bytes]
+i.pixels:bits.decode[8 bytes]
+
+i.pixels
+# ((0,1,1,1,0,0,0,0),
+#  (0,1,1,1,0,0,0,0),
+#  (0,0,1,0,0,0,0,0),
+#  (0,1,1,1,0,0,0,0),
+#  (1,0,1,0,1,0,0,0),
+#  (0,0,1,0,0,0,0,0),
+#  (0,1,0,1,0,0,0,0),
+#  (0,1,0,1,0,0,0,0))
+
+i.encoded
+# "%%IMG0AAgACHBwIHCoIFBQ"
 ```
 
 
@@ -1451,7 +1480,7 @@ after.merge[a.copy[] b.copy[]]
 ```
 ![](images/merge.gif)
 
-If the first argument to `canvas.merge[]` is a single-character string consisting of one of Lil's primitive arithmetic or logical operatiors (`+ - * & | < > =`), it will apply that operator between the pixel on the canvas and the corresponding pixel from the second argument image (truncating or repeating it to match) and update the canvas in-place. This permits many interesting types of blending:
+If the first argument to `canvas.merge[]` is a single-character string consisting of an arithmetic or logical operatior (`+ - * & | < > =` as in Lil, or `^` for bitwise XOR), it will apply that operator between the pixel on the canvas and the corresponding pixel from the second argument image (truncating or repeating it to match) and update the canvas in-place. This permits many interesting types of blending:
 ```lil
 after.merge["+" b.copy[]]
 ```

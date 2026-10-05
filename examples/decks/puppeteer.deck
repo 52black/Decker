@@ -882,7 +882,7 @@ end
 
 {module:dd}
 description:"Display sequential, styled modal dialogs for visual novels."
-version:1.9
+version:2
 {script}
 # state/constants:
 local host:0
@@ -948,9 +948,11 @@ end
 on repos pos size do
  if dpos~"center"
   .5*host.card.size-size
- elseif dpos in host.card.widgets
+ elseif host.card.widgets[dpos]
   t:host.card.widgets[dpos]
   t.pos+.5*t.size-size
+ elseif "list"~typeof dpos
+  2 take 0+dpos
  else pos
  end
 end

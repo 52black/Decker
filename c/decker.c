@@ -2416,7 +2416,10 @@ lv*n_save(lv*self,lv*z){
 void close_script(lv*next){
 	sc.next=next;field_exit();lv*text=rtext_all(sc.f.table);parse(text->sv);
 	if(!perr()){script_save(text),finish_script();return;}
-	char t[4096];snprintf(t,sizeof(t),"The current script contains errors:\n\n%s\n\nDo you wish to discard your changes?",par.error);
+	char t[4096];snprintf(t,sizeof(t),
+		"The current script contains errors,\nnear line %d, column %d:\n\n%s\n\nDo you wish to discard your changes?",
+		par.r+1,par.c+1, par.error
+	);
 	modal_enter(modal_confirm_script);ms.message=lmcstr(t),ms.verb=lmcstr("Discard");
 }
 void go_notify(lv*target_deck,lv*args,int dest){

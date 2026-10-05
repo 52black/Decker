@@ -3195,7 +3195,8 @@ close_script=next=>{
 	try{const text=ls(rtext_string(sc.f.table));parse(text),script_save(lms(text)),finish_script()}
 	catch(e){
 		modal_enter('confirm_script')
-		ms.message=lms(`The current script contains errors:\n\n${e.x}\n\nDo you wish to discard your changes?`),ms.verb=lms('Discard')
+		ms.message=lms(`The current script contains errors,\nnear line ${e.r+1}, column ${e.c+1}:\n\n${e.x}\n\nDo you wish to discard your changes?`)
+		ms.verb=lms('Discard')
 	}
 }
 script_editor=r=>{

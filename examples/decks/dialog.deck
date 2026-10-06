@@ -173,7 +173,7 @@ field3:{"type":"field","size":[44,12],"pos":[404,259],"locked":1,"border":0,"sty
 button1:{"type":"button","size":[60,20],"pos":[442,312],"script":"Index.1","text":"Next","style":"rect"}
 button2:{"type":"button","size":[60,20],"pos":[10,312],"script":"Index.1","text":"Prev","style":"rect"}
 title:{"type":"field","size":[492,17],"pos":[10,28],"locked":1,"font":"menu","show":"invert","border":1,"align":"center","value":"window size"}
-ex1:{"type":"field","size":[244,238],"pos":[10,56],"scrollbar":1,"style":"code","value":"o:()\no.size:200,0\ndd.open[deck o]\ndd.say[\"Fixed width, with a somewhat longer line to ensure text wrapping is actually happening as intended.\"]\n\no.size:0,100\ndd.style[o]\ndd.say[\"Fixed height.\"]\n\no.size:200,120\ndd.style[o]\ndd.say[\"Fixed width and height, with a somewhat longer line to ensure text wrapping is actually happening as intended.\"]\n\ndd.ask[\"Question...\" (\"one\",\"two\")]\n\no.size:0,0\ndd.style[o]\ndd.close[]"}
+ex1:{"type":"field","size":[244,238],"pos":[10,56],"scrollbar":1,"style":"code","scroll":19,"value":"o:()\no.size:200,0\ndd.open[deck o]\ndd.say[\"Fixed width, with a somewhat longer line to ensure text wrapping is actually happening as intended.\"]\n\no.size:0,100\ndd.style[o]\ndd.say[\"Fixed height.\"]\n\no.size:200,120\ndd.style[o]\ndd.say[\"Fixed width and height, with a somewhat longer line to ensure text wrapping is actually happening as intended.\"]\n\ndd.ask[\"Question...\" (\"one\",\"two\")]\n\no.size:0,0\ndd.style[o]\ndd.close[]"}
 field2:{"type":"field","size":[236,238],"pos":[266,56],"locked":1,"border":0,"value":"The \"size\" property can be used to configure a fixed width and/or height for dialog boxes. This can be particularly useful for making custom borders look their best.\n\nThe size property is specifed as a (width,height) pair. If either is 0, it is treated as the default behavior: full screen width minus a small margin, and the height required to display the specified text. If either is nonzero, that axis will take on exactly the specified size.\n\nIf you fix the size of the dialog box, it's up to you to ensure that your text (including option buttons for dd.ask[]) will fit properly! "}
 button4:{"type":"button","size":[60,20],"pos":[266,274],"script":"say.0","text":"Try It!"}
 button5:{"type":"button","size":[60,20],"pos":[78,312],"script":"Index.1","text":"Index","style":"rect"}
@@ -183,8 +183,8 @@ button5:{"type":"button","size":[60,20],"pos":[78,312],"script":"Index.1","text"
 button1:{"type":"button","size":[60,20],"pos":[442,312],"script":"Index.1","text":"Next","style":"rect"}
 button2:{"type":"button","size":[60,20],"pos":[10,312],"script":"Index.1","text":"Prev","style":"rect"}
 title:{"type":"field","size":[492,17],"pos":[10,28],"locked":1,"font":"menu","show":"invert","border":1,"align":"center","value":"window position"}
-ex1:{"type":"field","size":[244,238],"pos":[10,56],"scrollbar":1,"style":"code","value":"o:()\no.pos:\"center\"\ndd.open[deck o]\ndd.say[\"A vertically and horizontally centered dialog box.\\nNeat, eh?\"]\n\no.size:100,0\no.pos:\"place1\"\ndd.style[o]\ndd.say[\"Over Here...wih enough text to wrap multiple lines...\"]\n\no.pos:\"place2\"\ndd.style[o]\ndd.say[\"...Or over here!\"]\n\no.pos:\"place1\"\no.size:150,0\ndd.style[o]\ndd.ask[\"A question up here, long enough for word wrapping?\" (\"Red\",\"Blue\")]\n\no.size:0,0\no.pos:0\ndd.style[o]\ndd.close[]"}
-field2:{"type":"field","size":[236,238],"pos":[266,56],"locked":1,"border":0,"value":"The \"pos\" property can be used to configure a custom location for the dialog box on the card.\n\nIf the pos property is 0 (the default), the dialog box will be horizontally centered on the bottom edge of the card.\n\nIf the pos property is the string \"center\", the dialog box will be horizontally and vertically centered on the card.\n\nOtherwise, if the pos property is the name of a widget on the current card, the dialog box will be centered on that widget. This combines nicely with the \"size\" property."}
+ex1:{"type":"field","size":[244,238],"pos":[10,56],"scrollbar":1,"style":"code","value":"o:()\no.pos:\"center\"\ndd.open[deck o]\ndd.say[\"A vertically and horizontally centered dialog box.\\nNeat, eh?\"]\n\no.size:100,0\no.pos:\"place1\"\ndd.style[o]\ndd.say[\"Over Here...wih enough text to wrap multiple lines...\"]\n\no.pos:\"place2\"\ndd.style[o]\ndd.say[\"...Or over here!\"]\n\no.pos:50,200\ndd.style[o]\ndd.say[\"At specific coordinates.\"]\n\no.pos:\"place1\"\no.size:150,0\ndd.style[o]\ndd.ask[\"A question up here, long enough for word wrapping?\" (\"Red\",\"Blue\")]\n\no.size:0,0\no.pos:0\ndd.style[o]\ndd.close[]"}
+field2:{"type":"field","size":[236,238],"pos":[266,56],"locked":1,"border":0,"value":"The \"pos\" property can be used to configure a custom location for the dialog box on the card.\n\nIf the pos property is 0 (the default), the dialog box will be horizontally centered on the bottom edge of the card.\n\nIf the pos property is a pair of numbers, the top-left corner of the dialog box will be positioned at those coordinates.\n\nIf the pos property is the string \"center\", the dialog box will be horizontally and vertically centered on the card.\n\nOtherwise, if the pos property is the name of a widget on the current card, the dialog box will be centered on that widget. This combines nicely with the \"size\" property."}
 button4:{"type":"button","size":[60,20],"pos":[266,274],"script":"say.0","text":"Try It!"}
 button5:{"type":"button","size":[60,20],"pos":[78,312],"script":"Index.1","text":"Index","style":"rect"}
 place1:{"type":"button","size":[8,8],"pos":[92,96],"show":"none"}
@@ -432,7 +432,7 @@ image:"%%IMG3AgABVgZAgHBILBqPyKRyyWw6n9CodEqtWq/YrHbL7Xq/4LB4TC6bz+i0es1uu9/wuHx
 
 {module:dd}
 description:"Display sequential, styled modal dialogs for visual novels."
-version:1.9
+version:2.0
 {script}
 # state/constants:
 local host:0
@@ -498,9 +498,11 @@ end
 on repos pos size do
  if dpos~"center"
   .5*host.card.size-size
- elseif dpos in host.card.widgets
+ elseif host.card.widgets[dpos]
   t:host.card.widgets[dpos]
   t.pos+.5*t.size-size
+ elseif "list"~typeof dpos
+  2 take 0+dpos
  else pos
  end
 end

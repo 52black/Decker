@@ -45,7 +45,7 @@ char*pangram="How razorback jumping-frogs can level six piqued gymnasts.";
 
 lv*env,*deck=NULL,*doc_hist; int doc_hist_cursor=0;
 cstate context;
-int audio_playing=0,windowed=1,toggle_fullscreen=0;
+int audio_playing=0,windowed=1,toggle_fullscreen=0,last_locked=0;
 int autosave=0, noscale=0, dirty=0, dirty_timer=0; char document_path[PATH_MAX]={0};
 #define AUTOSAVE_DELAY (10*60)
 lv* deck_get(lv*text){interpreter_lock();lv*r=deck_read(text);interpreter_unlock();return r;}
@@ -1005,7 +1005,7 @@ void handle_widgets(lv*x,pair offset){
 }
 void widget_contraption(lv*x){
 	int show=ordinal_enum(ifield(x,"show"),widget_shows);if(show==show_none)return;
-	rect b=rect_pair(getpair(ifield(x,"pos")),getpair(ifield(x,"size")));lv*image=ifield(x,"image");
+	rect b=rect_pair(con_to_screen(getpair(ifield(x,"pos"))),getpair(ifield(x,"size")));lv*image=ifield(x,"image");
 	rect oc=frame.clip;frame.clip=box_intersect(frame.clip,b);char*pal=patterns_pal(ifield(deck,"patterns"));
 	draw_9seg(b,frame.buffer,image->b,getrect(ifield(ifield(x,"def"),"margin")),frame.clip,show==show_solid,show==show_invert?pal:NULL);
 	handle_widgets(ivalue(x,"widgets"),(pair){b.x,b.y});frame.clip=oc;
@@ -1150,7 +1150,7 @@ void listener(rect r){
 lv* n_panic(lv*self,lv*z){
 	do_panic=1,halt();for(int z=gc.ss-1;z>=0;z--){gc.st[z].t->c=0;}
 	modal_enter(modal_listen);
-	pair s={(512-22)-18,16};rect b=rect_pair((pair){0,0},s);lv*r=lmbuff(s);cstate t=frame;frame=draw_buffer(r);
+	pair s={(DEFAULT_SIZE.x-22)-18,16};rect b=rect_pair((pair){0,0},s);lv*r=lmbuff(s);cstate t=frame;frame=draw_buffer(r);
 	draw_box(b,0,35),draw_textc(inset(b,2),"PANIC",FONT_MONO,35),frame=t,listen_show_image(r,z);
 	n_show(self,z),dset(li.vars,lmistr("_"),l_first(z));return LNIL;
 }
@@ -4330,6 +4330,8 @@ lv* modal_track(modal_state*m){
 }
 void tick(lv*env){
 	interpreter_lock();
+	if(last_locked!=lb(ifield(deck,"locked")))resize_window(deck);
+	pointer_offset=con_offset();
 	pointer_updated=0,msg.pending_halt=0;
 	if(dirty&&dirty_timer>0&&!running()&&autosave&&strlen(document_path)){
 		dirty_timer--;
@@ -4342,7 +4344,7 @@ void tick(lv*env){
 	if(uimode==mode_script){int mh=3+font_h(FONT_MENU);if(!kc.on)script_editor((rect){0,mh,frame.size.x+1,frame.size.y-mh});}else{main_view();}
 	modals(),gestures();
 	if(uimode==mode_interact&&ev.drag&&ob.sel->c&&lb(ifield(ob.sel->lv[0],"draggable"))){
-		lv*c=ivalue(ob.sel->lv[0],"card");pair off=(contraption_is(c)||prototype_is(c))?getpair(ifield(c,"pos")):(pair){0,0};
+		lv*c=ivalue(ob.sel->lv[0],"card");pair off=pair_add(con_offset(),contraption_is(c)?getpair(ifield(c,"pos")): (pair){0,0});
 		iwrite(ob.sel->lv[0],lmistr("pos"),lmpair(pair_sub((pair){ev.pos.x-ob.prev.x,ev.pos.y-ob.prev.y},off))),mark_dirty();
 	}
 	if(kc.on){ev=ev_stash;keycaps();}
@@ -4426,12 +4428,14 @@ void save_deck(lv*path){
 	set_path(path->sv);
 }
 void resize_window(lv*deck){
+	int locked=lb(ifield(deck,"locked")), te=toolbars_enable&&!locked; last_locked=locked;
 	lv*card=ifield(deck,"card");
-	pair size=getpair(ifield(card,"size")), dis=get_display_size();
+	pair csize=getpair(ifield(card,"size")), dis=get_display_size();
+	pair size=locked?csize: pair_max(DEFAULT_SIZE,csize);
 	context=draw_buffer(lmbuff(size));
 	dset(env,lmistr("buff"),context.buffer);
 	int minscale=noscale?1: (size.x*2<=dis.x&&size.y*2<=dis.y)?2:1;
-	pair wsize={(size.x+(toolbars_enable?4+2*buff_size(TOOLB).x:0))*minscale,size.y*minscale+(toolbars_enable?4:0)};
+	pair wsize={(size.x+(te?4+2*buff_size(TOOLB).x:0))*minscale,size.y*minscale+(te?4:0)};
 	window_set_size(wsize,size,minscale);
 }
 void load_deck(lv*d){
@@ -4520,7 +4524,7 @@ int main(int argc,char**argv){
 	dset(env,lmistr("acc t" ),ACCENTS[8]=isolate_accent(8,FONT_MENU));
 	dset(env,lmistr("acc co"),ACCENTS[9]=isolate_accent(9,FONT_MENU));
 
-	context=draw_buffer(lmbuff((pair){512,342}));
+	context=draw_buffer(lmbuff(DEFAULT_SIZE));
 	dset(env,lmistr("buff"),context.buffer);
 
 	io_init();

@@ -25,6 +25,8 @@ typedef struct {
 	lv *buffer, *font;
 } cstate; cstate frame;
 
+pair DEFAULT_SIZE=(pair){512,342};
+
 itype(image)itype(sound)itype(font)itype(button)itype(field)itype(slider)itype(grid)itype(canvas)itype(deck)itype(card)itype(patterns)itype(module)itype(array)
 itype(prototype)itype(contraption)itype(proxy)itype(keystore)
 int widget_is(lv*x){return button_is(x)||field_is(x)||slider_is(x)||grid_is(x)||canvas_is(x)||contraption_is(x)||proxy_is(x);}
@@ -1616,15 +1618,17 @@ lv* interface_bits(lv*self,lv*i,lv*x){
 
 // Pointer interface
 
-pair pointer={0,0}, pointer_start={0,0}, pointer_prev={0,0}, pointer_end={0,0}; int pointer_held=0, pointer_down=0, pointer_up=0;
+pair pointer_offset={0,0};
+pair pointer={0,0}, pointer_start={0,0}, pointer_prev={0,0}, pointer_end={0,0};
+int pointer_held=0, pointer_down=0, pointer_up=0;
 lv* interface_pointer(lv*self,lv*i,lv*x){
 	ikey("held" )return lmn(pointer_held);
 	ikey("down" )return lmn(pointer_down);
 	ikey("up"   )return lmn(pointer_up);
-	ikey("pos"  )return lmpair(pointer);
-	ikey("start")return lmpair(pointer_start);
-	ikey("prev" )return lmpair(pointer_prev);
-	ikey("end"  )return lmpair(pointer_end);
+	ikey("pos"  )return lmpair(pair_sub(pointer      ,pointer_offset));
+	ikey("start")return lmpair(pair_sub(pointer_start,pointer_offset));
+	ikey("prev" )return lmpair(pair_sub(pointer_prev ,pointer_offset));
+	ikey("end"  )return lmpair(pair_add(pointer_end  ,pointer_offset));
 	return x?x:LNIL;(void)self;
 }
 
@@ -2484,9 +2488,9 @@ lv* interface_widget(lv*self,lv*i,lv*x){
 		ikey("event"   )return lmnat(n_event,self);
 		ikey("parent"  )return card;
 		ikey("offset"  ){
-			pair c=getpair(ifield(card,"size")),p=getpair(ifield(self,"pos")),d=getpair(ivalue(deck,"size"));
-			lv*con=card;while(contraption_is(con)){pair o=getpair(ifield(con,"pos"));p.x+=o.x,p.y+=o.y;con=ivalue(con,"card"),c=getpair(ifield(con,"size"));}
-			rect b=box_center(rect_pair((pair){0,0},d),c);return lmpair((pair){p.x+b.x,p.y+b.y});
+			pair p=getpair(ifield(self,"pos"));lv*con=card;
+			while(contraption_is(con)){p=pair_add(p,getpair(ifield(con,"pos")));con=ivalue(con,"card");}
+			return lmpair(p);
 		}
 	}return x?x:LNIL;
 }
@@ -3058,7 +3062,7 @@ lv* deck_read(lv*x){
 	{lv*k=lmistr("patterns");dset(r,k,patterns_read(deck));}
 	{lv*k=lmistr("version" ),*f=dget(deck,k);dset(r,k,f?f:lmn(1));}
 	{lv*k=lmistr("locked"  ),*f=dget(deck,k);dset(r,k,bool_read(f,0));}
-	{lv*k=lmistr("size"    ),*f=dget(deck,k);dset(r,k,f?lmpair(pair_max(getpair(normalize_pair(f)),(pair){8,8})):lmpair((pair){512,342}));}
+	{lv*k=lmistr("size"    ),*f=dget(deck,k);dset(r,k,f?lmpair(pair_max(getpair(normalize_pair(f)),(pair){8,8})):lmpair(DEFAULT_SIZE));}
 	{lv*k=lmistr("name"    ),*f=dget(deck,k);dset(r,k,str_read(f,""));}
 	{lv*k=lmistr("author"  ),*f=dget(deck,k);dset(r,k,str_read(f,""));}
 	{lv*k=lmistr("script"  ),*f=dget(deck,k);dset(r,k,str_read(f,""));}

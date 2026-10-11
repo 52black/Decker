@@ -883,6 +883,7 @@ show=(x,toplevel)=>linat(x)?'on native x do ... end': linil(x)?(toplevel?'':'nil
 FORMAT_VERSION=1, RTEXT_END=2147483647, SFX_RATE=8000, ANTS=255
 FRAME_QUOTA=MODULE_QUOTA=10*4096, TRANS_QUOTA=2*4096, LOOP_QUOTA=1*4096, ATTR_QUOTA=1*4096, BRUSH_QUOTA=128
 sleep_frames=0, sleep_play=0, pending_popstate=0
+DEFAULT_SIZE={x:512,y:342}
 DEFAULT_HANDLERS=`
 on link x do go[x] end
 on drag x do if !me.locked|me.draggable me.line[(pointer.prev-me.offset)/me.scale x] end end
@@ -1538,12 +1539,12 @@ pointer={f:(self,i,x)=>{
 	if(ikey(i,'held' ))return lmn(self.held)
 	if(ikey(i,'down' ))return lmn(self.down)
 	if(ikey(i,'up'   ))return lmn(self.up)
-	if(ikey(i,'pos'  ))return lmpair(self.pos)
-	if(ikey(i,'start'))return lmpair(self.start)
-	if(ikey(i,'prev' ))return lmpair(self.prev)
-	if(ikey(i,'end'  ))return lmpair(self.end)
+	if(ikey(i,'pos'  ))return lmpair(rsub(self.pos  ,self.offset))
+	if(ikey(i,'start'))return lmpair(rsub(self.start,self.offset))
+	if(ikey(i,'prev' ))return lmpair(rsub(self.prev ,self.offset))
+	if(ikey(i,'end'  ))return lmpair(rsub(self.end  ,self.offset))
 	return x?x:NIL
-},t:'int',n:'pointer',held:0,down:0,up:0,pos:rect(),start:rect(),prev:rect(),end:rect()}
+},t:'int',n:'pointer',held:0,down:0,up:0,pos:rect(),start:rect(),prev:rect(),end:rect(),offset:rect()}
 
 let keypress={},keydown={},keyup={}
 gamepad={f:(self,i,x)=>{
@@ -2700,9 +2701,9 @@ interface_widget=(self,i,x)=>{
 			const r=(a?match(o,n):(lb(v)&&!match(v,n)))?s:n;iwrite(self,lms('show'),r);return r
 		})
 		if(ikey(i,'offset')){
-			let c=getpair(ifield(self.card,'size')), p=getpair(ifield(self,'pos')), d=self.card.deck.size, con=self.card
-			while(contraption_is(con)){p=radd(p,getpair(ifield(con,'pos'))),con=con.card,c=getpair(ifield(con,'size'))}
-			return lmpair(radd(p,rcenter(rect(0,0,d.x,d.y),c)))
+			let p=getpair(ifield(self,'pos')), con=self.card
+			while(contraption_is(con)){p=radd(p,getpair(ifield(con,'pos'))),con=con.card}
+			return lmpair(p)
 		}
 	}return x?x:NIL
 }
@@ -3132,7 +3133,7 @@ deck_read=x=>{
 	ri.corners     =deck.hasOwnProperty('corners')?clamp(0,ln(deck.corners),255):1
 	ri.script      =deck.hasOwnProperty('script' )?scripts.get(ls(deck.script)):''
 	ri.card        =deck.hasOwnProperty('card'   )?clamp(0,ln(deck.card),Object.keys(cards).length-1):0
-	ri.size        =deck.hasOwnProperty('size'   )?rclamp(rect(8,8),getpair(deck.size),rect(4096,4096)):rect(512,342)
+	ri.size        =deck.hasOwnProperty('size'   )?rclamp(rect(8,8),getpair(deck.size),rect(4096,4096)):DEFAULT_SIZE
 	if(Object.keys(cards).length==0)cards.home=lmd(['name'].map(lms),[lms('home')])
 	const root=lmenv();constants(root),primitives(root,ri)
 	pushstate(root),issue(root,parse(DEFAULT_TRANSITIONS));while(running())runop();popstate()

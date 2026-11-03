@@ -685,7 +685,7 @@ dyad(l_parse){
 		else if(t=='m')v=lmbool(m);
 		else if(t=='n')v=lmn(h);
 		else if(t=='z')v=lmbool(m&&h==y->c);
-		else if(t=='i'){long long r=0,s=hc=='-'?(h++,-1):1;m&=!!isdigit(hc);while(hn&&isdigit(hc))r=r*10+hc-'0',h++;v=lmn(r*s);}
+		else if(t=='i'){long long r=0,hd=0,s=hc=='-'?(h++,-1):1;m&=!!isdigit(hc);while(hn&&isdigit(hc))hd=1,r=r*10+hc-'0',h++;v=lmn(r*s);if(!hd)h=si,v=LNIL;}
 		else if(t=='h'||t=='H'){long long r=0;m&=!!isxdigit(hc);while(hn&&isxdigit(hc))r=r*16+(hc>'9'?drom_tolower(hc)-'a'+10:hc-'0'),h++;v=lmn(r);}
 		else if(strchr("slu",t)){str r=str_new();while(hn&&(n?1:hc!=fc))str_addc(&r,ulc(hc)),h++;v=lmstr(r);}
 		else if(t=='a'){v=lml(0);while(hn&&(n?1:hc!=fc))ll_add(v,lmn(0xFF&hc)),h++;}
@@ -706,9 +706,10 @@ dyad(l_parse){
 			}if(!m)r.c=0;v=lmstr(r);
 		}
 		else if(t=='f'||t=='c'||t=='C'){
-			double r=0,p=10,s=hc=='-'?(h++,-1):1;if(t=='c'&&m&&hc=='$')h++;
-			m&=!!isdigit(hc)||hc=='.';while(hn&&isdigit(hc))r=r*10+hc-'0',h++;
-			if(hn&&hc=='.')h++;while(hn&&isdigit(hc))r+=(hc-'0')/p,p*=10,h++;v=lmn(r*s);
+			double r=0,p=10,hd=0,s=hc=='-'?(h++,-1):1;if(t=='c'&&m&&hc=='$')h++;
+			m&=!!isdigit(hc)||hc=='.';while(hn&&isdigit(hc))hd=1,r=r*10+hc-'0',h++;
+			if(hn&&hc=='.')h++;while(hn&&isdigit(hc))hd=1,r+=(hc-'0')/p,p*=10,h++;v=lmn(r*s);
+			if(!hd)h=si,v=LNIL;
 		}
 		else if(t=='e'||t=='p'){
 			struct tm tm={0};if(m){
@@ -996,7 +997,7 @@ typedef struct{int i,r,c,tl;char*text;token here,next;char error[1024];}parser;p
 #define init_tok(x,v) (x->type=v,x->row=par.r,x->col=par.c)
 #define perr()        par.error[0]
 //         ! "#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_`abcdefghijklmnopqrstuvwxyz{|}~
-char*tcc=" s\" sss ()ssssdsdddddddddd: sssn@nnnnnnnnnnnnnnnnnnnnnnnnnn[ ]sn nnnnnnnnnnnnnnnnnnnnnnnnnn s s";
+char*tcc=" s\" $ss ()ssssdsdddddddddd: sssn@nnnnnnnnnnnnnnnnnnnnnnnnnn[ ]sn nnnnnnnnnnnnnnnnnnnnnnnnnn s s";
 char*ncc= "                nnnnnnnnnn     n nnnnnnnnnnnnnnnnnnnnnnnnnn    n nnnnnnnnnnnnnnnnnnnnnnnnnn    ";
 char*mcc= "     xx x xxxx x          x xxx x                          x  x                             x x";
 char tc(void){return (par.i>=par.tl)?' ':par.text[par.i];}
@@ -1079,7 +1080,13 @@ str name(char*n){
 	if(!ident(r.sv))snprintf(par.error,sizeof(par.error),"'%s' is a keyword, and cannot be used for a %s name.",r.sv,n);
 	return r;
 }
-lv* names(char*end,char*type){lv*r=lml(0);while(!match(end)&&!perr())ll_add(r,lmstr(name(type)));return r;}
+lv* names(char*end,char*type){
+	lv*r=lml(0);while(!match(end)&&!perr()){
+		lv*n=lmstr(name(type));
+		for(int z=0;z<r->c;z++)if(matchr(n,r->lv[z])){snprintf(par.error,sizeof(par.error),"Repeated %s name '%s'.",type,n->sv);break;}
+		ll_add(r,n);
+	}return r;
+}
 void expr(lv*b);lv*n_uplevel(lv*self,lv*a); // forward refs
 lv* quote(void){lv*r=lmblk();expr(r);blk_end(r);return r;}
 void iblock(lv*r){
@@ -1206,6 +1213,7 @@ void term(lv*b){
 }
 void expr(lv*b){
 	term(b);if(strchr("[.",peek()->type)){parseindex(b,NULL);}
+	if(matchsp('$')){expr(b),blk_op(b,CALL);return;}
 	if(matchsp('@')){
 		int depth=0;while(matchsp('@'))depth++;
 		lv*func=tempname();blk_set(b,func);blk_op(b,DROP);expr(b);
@@ -1242,6 +1250,7 @@ lv* env_bind(lv*e,lv*k,lv*v){lv*r=lmenv(e);EACH(z,k)env_local(r,k->lv[z],z<v->c?
 #define getpc()        idx_peek(&state.pcs)
 
 void docall(lv*f,lv*a,int tail){
+	if(!lil(a))a=l_list(a);
 	if(linat(f)){ret(((lv*(*)(lv*,lv*))f->f)(f->a,a));return;}
 	if(!lion(f)){ret(l_at(f,l_first(a)));return;}
 	if(tail){descope;}

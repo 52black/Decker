@@ -1064,7 +1064,7 @@ As an additional convenience, `struct[]` will accept a plain `string` or `(strin
 
 As an example of using `struct[]`, the following decodes the header of a [GIF89a](https://www.w3.org/Graphics/GIF/spec-gif89a.txt) image file (`src.gif`) and, if present, its global colortable:
 ```lil
-bin:read["src.gif" "array"]
+bin:read["array"]
 
 gif.magic      :"char",6  # "GIF89a" magic number.
 gif.size       :"u16l",2  # (width,height) in pixels.

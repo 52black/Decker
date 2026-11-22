@@ -1105,7 +1105,7 @@ widget_contraption=x=>{
 	const b=rpair(con_to_screen(getpair(ifield(x,'pos'))),getpair(ifield(x,'size'))), image=ifield(x,'image')
 	const oc=frame.clip,pal=deck.patterns.pal.pix;frame.clip=rclip(frame.clip,b)
 	draw_9seg(b,frame.image,image,getrect(ifield(x.def,'margin')),frame.clip,show=='solid',show=='invert'?pal:null)
-	handle_widgets(x.widgets,rect(b.x,b.y)),frame.clip=oc
+	handle_widgets_rec(x.widgets,rect(b.x,b.y)),frame.clip=oc
 }
 
 let attrs=[], attrs_scroll=0
@@ -1127,7 +1127,7 @@ widget_attributes=b=>{
 		if(a.type=='rich'  )ui_richedit(wb,1,a.value)
 	});frame.clip=oc,ev.pos=bp,ev.dpos=bd,ev.scroll=bs
 }
-handle_widgets=(x,offset)=>{
+handle_widgets_rec=(x,offset)=>{
 	x.v.map(w=>{
 		if(button_is(w)){
 			const v=lb(ifield(w,'value')), p=unpack_button(w);p.size=radd(p.size,offset)
@@ -1142,6 +1142,9 @@ handle_widgets=(x,offset)=>{
 		}
 		if(contraption_is(w))widget_contraption(w)
 	})
+}
+handle_widgets=(x,offset)=>{
+	handle_widgets_rec(x,offset)
 	if(canvas_is(msg.target_click)&&ev.md)msg.target_hot=msg.target_click
 	if(ev.mu)msg.target_hot=null
 }

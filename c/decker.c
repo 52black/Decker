@@ -987,7 +987,7 @@ void field_keys(int code,int shift){
 	wid.cursor_timer=0; if(!shift)wid.cursor.x=wid.cursor.y; field_showcursor();
 }
 void widget_contraption(lv*x);// forward def
-void handle_widgets(lv*x,pair offset){
+void handle_widgets_rec(lv*x,pair offset){
 	EACH(z,x){
 		lv*w=x->lv[z];
 		if(button_is(w)){
@@ -1006,15 +1006,18 @@ void handle_widgets(lv*x,pair offset){
 		}
 		if(contraption_is(w))widget_contraption(w);
 	}
-	if(canvas_is(msg.target_click)&&ev.md){msg.target_hot=msg.target_click;}
-	if(ev.mu)msg.target_hot=NULL;
 }
 void widget_contraption(lv*x){
 	int show=ordinal_enum(ifield(x,"show"),widget_shows);if(show==show_none)return;
 	rect b=rect_pair(con_to_screen(getpair(ifield(x,"pos"))),getpair(ifield(x,"size")));lv*image=ifield(x,"image");
 	rect oc=frame.clip;frame.clip=box_intersect(frame.clip,b);char*pal=patterns_pal(ifield(deck,"patterns"));
 	draw_9seg(b,frame.buffer,image->b,getrect(ifield(ifield(x,"def"),"margin")),frame.clip,show==show_solid,show==show_invert?pal:NULL);
-	handle_widgets(ivalue(x,"widgets"),(pair){b.x,b.y});frame.clip=oc;
+	handle_widgets_rec(ivalue(x,"widgets"),(pair){b.x,b.y});frame.clip=oc;
+}
+void handle_widgets(lv*x,pair offset){
+	handle_widgets_rec(x,offset);
+	if(canvas_is(msg.target_click)&&ev.md){msg.target_hot=msg.target_click;}
+	if(ev.mu)msg.target_hot=NULL;
 }
 
 int  ui_button  (rect r,char*label,int enable          ){return widget_button(NULL,(button){label,r,FONT_MENU,32,button_round,show_solid,!enable,0},0);}

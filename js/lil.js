@@ -1439,7 +1439,7 @@ layout_plaintext=(text,font,align,mx)=>{
 		let w=(a&&a==i)?0:(layout[i].pos.x+layout[i].pos.w)                       // find width of line
 		let x=align==ALIGN.center?0|((mx.x-w)/2): align==ALIGN.right?(mx.x-w): 0  // justify
 		lines.push({pos:rect(x,y,w,h),range:rect(a,i)})
-		for(let z=a;z<=i;z++){const g=layout[z].pos;g.y=y+0|((h-g.h)/2);g.x+=x;}if(i<layout.length-1)y+=h
+		for(let z=a;z<=i;z++){const g=layout[z].pos;g.y=y+(0|((h-g.h)/2));g.x+=x;}if(i<layout.length-1)y+=h
 	}return {size:rect(mx.x,y+fh),layout,lines}
 }
 layout_richtext=(deck,table,font,align,width)=>{
@@ -1471,7 +1471,7 @@ layout_richtext=(deck,table,font,align,width)=>{
 		let w=layout[i].pos.x+layout[i].pos.w                                       // find width of line
 		let x=align==ALIGN.center?0|((width-w)/2): align==ALIGN.right?(width-w): 0  // justify
 		lines.push({pos:rect(x,y,w,h),range:rect(a,i)})
-		for(let z=a;z<=i;z++){const g=layout[z].pos;g.y=y+0|((h-g.h)/2);g.x+=x;}y+=h
+		for(let z=a;z<=i;z++){const g=layout[z].pos;g.y=y+(0|((h-g.h)/2));g.x+=x;}y+=h
 	}return {size:rect(width,y),layout,lines}
 }
 draw_text_wrap=(r,l,pattern)=>{

@@ -3647,7 +3647,11 @@ main_view=_=>{
 	if(ms.type!='trans'){
 		const cl=con_clip(),s=con_size()
 		if(back.size.x!=s.x||back.size.y!=s.y)image_resize(back,s),mark_dirty()
-		if(dr.fatbits){frame.image.pix.fill(46),draw_rect(cl,dr.trans_mask?45:32),draw_fat(cl,back,pal,frame_count,0,dr.zoom,dr.offset)}
+		if(dr.fatbits){
+			frame.image.pix.fill(46)
+			draw_rect(rect(cl.x-(dr.zoom*dr.offset.x),cl.y-(dr.zoom*dr.offset.y),dr.zoom*s.x,dr.zoom*s.y),dr.trans_mask?45:32)
+			draw_fat(cl,back,pal,frame_count,0,dr.zoom,dr.offset)
+		}
 		else if(s.x==frame.size.x&&s.y==frame.size.y){for(let z=0;z<back.pix.length;z++)frame.image.pix[z]=back.pix[z]}
 		else{frame.image.pix.fill(46),image_paste(cl,frame.clip,back,frame.image,1)}
 	}
@@ -3782,8 +3786,11 @@ tick=_=>{
 		iwrite(ob.sel[0],lms('pos'),lmpair(rsub(rsub(ev.pos,ob.prev),off))),mark_dirty()
 	}
 	document.title=ls(ifield(deck,'name')) || 'Untitled Deck'
-	const ccolor=ln(ifield(deck,'corners'))
-	if(ccolor)for(let x=0;x<=1;x++)for(let y=0;y<=1;y++)draw_icon(rect(x*(context.size.x-5),y*(context.size.y-5)),CORNERS[x+y*2],ccolor)
+	const ccolor=ln(ifield(deck,'corners'));if(ccolor){
+		const h=context.size.x-5, v=context.size.y-5;
+		if(!(dr.fatbits&&ev.hidemenu))draw_icon(rect(0,0),CORNERS[0],ccolor),draw_icon(rect(h,0),CORNERS[1],ccolor)
+		if(!dr.fatbits               )draw_icon(rect(0,v),CORNERS[2],ccolor),draw_icon(rect(h,v),CORNERS[3],ccolor)
+	}
 	const used=interpret()
 	if(uimode=='interact'&&profiler){
 		const r=rect(frame.size.x-60,2,50,12), pal=deck.patterns.pal.pix

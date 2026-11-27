@@ -4245,7 +4245,11 @@ void main_view(void){
 	if(ms.type!=modal_trans){
 		rect cl=con_clip();pair s=con_size();
 		if(bsize.x!=s.x||bsize.y!=s.y)image_resize(back,s),mark_dirty();
-		if(dr.fatbits){memset(frame.buffer->sv,46,frame.buffer->c),draw_rect(cl,dr.trans_mask?45:32);draw_fat(cl,back->b,pal,frame_count,0,FAT,dr.offset);}
+		if(dr.fatbits){
+			memset(frame.buffer->sv,46,frame.buffer->c);
+			draw_rect((rect){cl.x-(FAT*dr.offset.x),cl.y-(FAT*dr.offset.y),FAT*s.x,FAT*s.y},dr.trans_mask?45:32);
+			draw_fat(cl,back->b,pal,frame_count,0,FAT,dr.offset);
+		}
 		else if(s.x==frame.size.x&&s.y==frame.size.y){memcpy(frame.buffer->sv,back->b->sv,frame.buffer->c);}
 		else{memset(frame.buffer->sv,46,frame.buffer->c);buffer_paste(cl,frame.clip,back->b,frame.buffer,1);}
 	}
@@ -4369,8 +4373,11 @@ void tick(lv*env){
 	if(uimode==mode_script&&enable_touch&&ms.type==modal_none)wid.active=0;
 	menu_finish();
 	if(uimode==mode_draw&&dr.fatbits&&!ev.hidemenu)draw_icon((pair){frame.size.x-14,2},ZOOM,1);
-	int ccolor=ln(ifield(deck,"corners"));
-	if(!windowed)if(ccolor)for(int x=0;x<=1;x++)for(int y=0;y<=1;y++)draw_icon((pair){x*(context.size.x-5),y*(context.size.y-5)},CORNERS[x+y*2],ccolor);
+	int ccolor=ln(ifield(deck,"corners"));if(!windowed&&ccolor){
+		int h=context.size.x-5, v=context.size.y-5;
+		if(!(dr.fatbits&&ev.hidemenu))draw_icon((pair){0,0},CORNERS[0],ccolor),draw_icon((pair){h,0},CORNERS[1],ccolor);
+		if(!dr.fatbits               )draw_icon((pair){0,v},CORNERS[2],ccolor),draw_icon((pair){h,v},CORNERS[3],ccolor);
+	}
 	double used=interpret();
 	if(uimode==mode_interact&&profiler){
 		rect r={frame.size.x-60,2,50,12};char*pal=patterns_pal(ifield(deck,"patterns"));
